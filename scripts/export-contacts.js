@@ -12,7 +12,7 @@ const {
   writeCsv,
   getNested,
   getAuthAndAccount,
-} = require("./lib/wa-api");
+} = require("../lib/wa-api");
 
 const OUT_DIR = path.join(process.cwd(), "exports", "contacts");
 

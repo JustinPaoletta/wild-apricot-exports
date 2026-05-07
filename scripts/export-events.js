@@ -14,7 +14,7 @@ const {
   getNested,
   getAuthAndAccount,
   sleep,
-} = require("./lib/wa-api");
+} = require("../lib/wa-api");
 
 const OUT_DIR = path.join(process.cwd(), "exports", "events");
 

@@ -20,7 +20,7 @@ const {
   getAuthAndAccount,
   sleep,
   csvEscape,
-} = require("./lib/wa-api");
+} = require("../lib/wa-api");
 
 const OUT_DIR = path.join(process.cwd(), "exports", "events");
 const EVENTS_JSON = path.join(OUT_DIR, "wild-apricot-events.json");

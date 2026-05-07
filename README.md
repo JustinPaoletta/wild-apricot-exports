@@ -6,18 +6,18 @@ A set of small Node.js scripts that pull your data out of Wild Apricot via the p
 
 ## What gets exported
 
-| Script                    | Output                                                | Source           |
-| ------------------------- | ----------------------------------------------------- | ---------------- |
-| `export-config.js`        | Account / membership levels / event tags / settings   | REST API         |
-| `export-events.js`        | All events                                            | REST API         |
-| `export-registrations.js` | Event registrations                                   | REST API         |
-| `export-contacts.js`      | Contacts / members                                    | REST API         |
-| `export-invoices.js`      | Invoices                                              | REST API         |
-| `export-payments.js`      | Payments                                              | REST API         |
-| `export-donations.js`     | Donations                                             | REST API         |
-| `export-audit-log.js`     | Audit log entries                                     | REST API         |
-| `export-files.js`         | All uploaded files (Documents, Pictures, Logos, etc.) | WebDAV           |
-| `export-all.js`           | Runs every script above in sequence                   | REST API + WebDAV |
+| Script                            | Output                                                | Source            |
+| --------------------------------- | ----------------------------------------------------- | ----------------- |
+| `scripts/export-config.js`        | Account / membership levels / event tags / settings   | REST API          |
+| `scripts/export-events.js`        | All events                                            | REST API          |
+| `scripts/export-registrations.js` | Event registrations                                   | REST API          |
+| `scripts/export-contacts.js`      | Contacts / members                                    | REST API          |
+| `scripts/export-invoices.js`      | Invoices                                              | REST API          |
+| `scripts/export-payments.js`      | Payments                                              | REST API          |
+| `scripts/export-donations.js`     | Donations                                             | REST API          |
+| `scripts/export-audit-log.js`     | Audit log entries                                     | REST API          |
+| `scripts/export-files.js`         | All uploaded files (Documents, Pictures, Logos, etc.) | WebDAV            |
+| `scripts/export-all.js`           | Runs every script above in sequence                   | REST API + WebDAV |
 
 REST exports are written as both `.json` (full payload) and `.csv` (flattened, spreadsheet-friendly). File exports preserve the original folder structure under `exports/files/`.
 
