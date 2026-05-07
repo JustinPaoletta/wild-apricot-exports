@@ -1,0 +1,22 @@
+{
+  "name": "wild-apricot-export",
+  "version": "1.0.0",
+  "description": "Scripts for exporting Wild Apricot event data.",
+  "main": "export-all.js",
+  "scripts": {
+    "export-all": "node export-all.js",
+    "export-events": "node export-events.js",
+    "export-registrations": "node export-registrations.js",
+    "export-contacts": "node export-contacts.js",
+    "export-invoices": "node export-invoices.js",
+    "export-payments": "node export-payments.js",
+    "export-donations": "node export-donations.js",
+    "export-audit-log": "node export-audit-log.js",
+    "export-config": "node export-config.js",
+    "export-files": "node export-files.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "webdav": "^5.10.0"
+  }
+}
