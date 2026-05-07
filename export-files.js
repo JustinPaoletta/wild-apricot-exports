@@ -15,8 +15,10 @@ const WEBDAV_URL = process.env.WILD_APRICOT_WEBDAV_URL;
 const USERNAME = process.env.WILD_APRICOT_ADMIN_EMAIL;
 const PASSWORD = process.env.WILD_APRICOT_ADMIN_PASSWORD;
 
-// Comma-separated list of top-level dirs to crawl, or blank = crawl everything
-const TOP_DIRS_ENV = process.env.WILD_APRICOT_TOP_DIRS || "";
+// Comma-separated list of dirs to crawl. If blank, the script crawls everything
+// from "/" recursively (including any files that live directly at the root).
+// If set, only the listed dirs are crawled (recursively).
+const FILE_DIRS_ENV = process.env.WILD_APRICOT_FILE_DIRS || "";
 
 const OUT_DIR = path.join(process.cwd(), "exports", "files");
 const MANIFEST_PATH = path.join(OUT_DIR, "_manifest.json");
@@ -139,28 +141,20 @@ async function main() {
   console.log(`WebDAV URL: ${WEBDAV_URL}`);
   console.log(`Output dir: ${OUT_DIR}`);
 
-  // Determine which top-level directories to crawl
-  let topDirs;
-  if (TOP_DIRS_ENV.trim()) {
-    topDirs = TOP_DIRS_ENV.split(",").map((d) => d.trim()).filter(Boolean);
-    console.log(`Crawling specified dirs: ${topDirs.join(", ")}`);
-  } else {
-    console.log("Discovering top-level directories...");
-    const root = await listDir(client, "/");
-    topDirs = root
-      .filter((item) => item.type === "directory")
-      .map((item) => item.basename);
-    console.log(`Found dirs: ${topDirs.join(", ")}`);
-  }
-
   const stats = { total: 0, downloaded: 0, skipped: 0, failed: 0 };
 
-  for (const dir of topDirs) {
-    const remotePath = `/${dir}`;
-    const localPath = path.join(OUT_DIR, dir);
-    ensureDir(localPath);
-    console.log(`\nCrawling: ${remotePath}`);
-    await crawlAndDownload(client, remotePath, OUT_DIR, manifest, stats);
+  if (FILE_DIRS_ENV.trim()) {
+    const fileDirs = FILE_DIRS_ENV.split(",").map((d) => d.trim()).filter(Boolean);
+    console.log(`Crawling specified dirs: ${fileDirs.join(", ")}`);
+    for (const dir of fileDirs) {
+      const remotePath = `/${dir.replace(/^\/+/, "")}`;
+      ensureDir(path.join(OUT_DIR, dir.replace(/^\/+/, "")));
+      console.log(`\nCrawling: ${remotePath}`);
+      await crawlAndDownload(client, remotePath, OUT_DIR, manifest, stats);
+    }
+  } else {
+    console.log("\nCrawling: / (root, recursive — everything)");
+    await crawlAndDownload(client, "/", OUT_DIR, manifest, stats);
   }
 
   console.log("\n--- Done ---");

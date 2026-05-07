@@ -7,6 +7,7 @@
   "scripts": {
     "export-all": "node export-all.js",
     "export-events": "node export-events.js",
+    "retry-event-failures": "node retry-event-failures.js",
     "export-registrations": "node export-registrations.js",
     "export-contacts": "node export-contacts.js",
     "export-invoices": "node export-invoices.js",

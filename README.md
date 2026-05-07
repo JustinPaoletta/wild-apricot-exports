@@ -87,7 +87,7 @@ exports/
 
 - **File downloads are resumable.** `export-files.js` writes a manifest after every file, so re-running it skips files already downloaded successfully and retries failed ones.
 - **WebDAV uses HTTP Digest auth.** Wild Apricot's WebDAV endpoint returns 500 on Basic auth; the script handles this automatically.
-- **Auto-discovery of top-level WebDAV folders is unreliable** — listing `/` often 500s. The default `WILD_APRICOT_TOP_DIRS` covers the standard set (Documents, Pictures, Logos, Theme, Theme_Overrides, SiteUploads, SiteAlbums, EmailTemplates, favicon, Site). Add or remove entries as needed.
+- **By default, `export-files.js` crawls everything under `/` recursively** (including files at the root). If listing `/` 500s on your Wild Apricot account, set `WILD_APRICOT_FILE_DIRS` to a comma-separated list of folders to scope the crawl (e.g. `Documents,Pictures,Logos,Theme,Theme_Overrides,SiteUploads,SiteAlbums,EmailTemplates,favicon,Site`).
 - **Audit log retention is limited** by Wild Apricot (often 30–90 days depending on plan). Old `AUDIT_START_DATE` values will simply return nothing.
 - **Date filters** for invoices, payments, donations, and the audit log are optional. Leave them blank in `.env` to fetch everything.
 

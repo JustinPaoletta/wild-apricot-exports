@@ -7,19 +7,20 @@ require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
 
-const API_KEY = process.env.WILD_APRICOT_API_KEY;
-let ACCOUNT_ID = process.env.WILD_APRICOT_ACCOUNT_ID;
-
-if (!API_KEY) {
-  console.error("Missing WILD_APRICOT_API_KEY in .env");
-  process.exit(1);
-}
+const {
+  API_BASE,
+  apiGet,
+  ensureDir,
+  getNested,
+  getAuthAndAccount,
+  sleep,
+} = require("./lib/wa-api");
 
 const OUT_DIR = path.join(process.cwd(), "exports", "events");
 
-function ensureDir(dir) {
-  fs.mkdirSync(dir, { recursive: true });
-}
+// Event endpoints are often throttled much lower than WA's general API docs (~30/min
+// in practice). ~2.2s spacing stays under that; override with WA_EVENT_REQUEST_DELAY_MS.
+const EVENT_REQUEST_DELAY_MS = parseInt(process.env.WA_EVENT_REQUEST_DELAY_MS || "2200", 10);
 
 function csvEscape(value) {
   if (value === null || value === undefined) return "";
@@ -28,22 +29,6 @@ function csvEscape(value) {
     return `"${str.replace(/"/g, '""')}"`;
   }
   return str;
-}
-
-function getNested(obj, paths) {
-  for (const p of paths) {
-    const parts = p.split(".");
-    let cur = obj;
-
-    for (const part of parts) {
-      if (cur == null) break;
-      cur = cur[part];
-    }
-
-    if (cur !== undefined && cur !== null && cur !== "") return cur;
-  }
-
-  return "";
 }
 
 function normalizeEvent(event) {
@@ -60,82 +45,6 @@ function normalizeEvent(event) {
     detailsUrl: getNested(event, ["DetailsUrl", "detailsUrl"]),
     raw: event,
   };
-}
-
-async function getAccessToken() {
-  const credentials = Buffer.from(`APIKEY:${API_KEY}`).toString("base64");
-
-  const response = await fetch("https://oauth.wildapricot.org/auth/token", {
-    method: "POST",
-    headers: {
-      Authorization: `Basic ${credentials}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: new URLSearchParams({
-      grant_type: "client_credentials",
-      scope: "auto",
-    }),
-  });
-
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(
-      `Token request failed: ${response.status} ${response.statusText}\n${body}`
-    );
-  }
-
-  const data = await response.json();
-
-  if (!data.access_token) {
-    throw new Error(
-      `Token response did not include access_token:\n${JSON.stringify(data, null, 2)}`
-    );
-  }
-
-  return data.access_token;
-}
-
-async function apiGet(url, token) {
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: "application/json",
-    },
-  });
-
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(
-      `GET failed: ${response.status} ${response.statusText}\nURL: ${url}\n${body}`
-    );
-  }
-
-  return response.json();
-}
-
-async function discoverAccountId(token) {
-  const accountsUrl = "https://api.wildapricot.org/v2.2/accounts";
-  const data = await apiGet(accountsUrl, token);
-
-  const accounts = Array.isArray(data)
-    ? data
-    : data.Accounts || data.accounts || data.Items || data.items || [];
-
-  if (!accounts.length) {
-    throw new Error(`No accounts found:\n${JSON.stringify(data, null, 2)}`);
-  }
-
-  const account = accounts[0];
-  const accountId =
-    account.Id || account.id || account.AccountId || account.accountId;
-
-  if (!accountId) {
-    throw new Error(
-      `Could not discover account ID:\n${JSON.stringify(account, null, 2)}`
-    );
-  }
-
-  return accountId;
 }
 
 function extractItems(data) {
@@ -166,9 +75,12 @@ async function getAllEvents(token, accountId) {
   // top/skip style pagination. If Wild Apricot returns a next link, this also follows it.
   let skip = 0;
   const top = 100;
-  let nextUrl = `https://api.wildapricot.org/v2.2/accounts/${accountId}/events?$top=${top}&$skip=${skip}`;
+  let nextUrl = `${API_BASE}/accounts/${accountId}/events?$top=${top}&$skip=${skip}`;
+  let firstPage = true;
 
   while (nextUrl) {
+    if (!firstPage) await sleep(EVENT_REQUEST_DELAY_MS);
+    firstPage = false;
     console.log(`Fetching: ${nextUrl}`);
 
     const data = await apiGet(nextUrl, token);
@@ -186,7 +98,7 @@ async function getAllEvents(token, accountId) {
       nextUrl = null;
     } else {
       skip += top;
-      nextUrl = `https://api.wildapricot.org/v2.2/accounts/${accountId}/events?$top=${top}&$skip=${skip}`;
+      nextUrl = `${API_BASE}/accounts/${accountId}/events?$top=${top}&$skip=${skip}`;
     }
   }
 
@@ -196,17 +108,16 @@ async function getAllEvents(token, accountId) {
 async function getEventDetails(token, accountId, event) {
   const id = event.Id || event.id || event.EventId || event.eventId;
 
-  if (!id) return event;
+  if (!id) return { event, ok: true, skipped: true };
 
-  const url = `https://api.wildapricot.org/v2.2/accounts/${accountId}/events/${id}`;
+  const url = `${API_BASE}/accounts/${accountId}/events/${id}`;
 
   try {
-    return await apiGet(url, token);
+    const detail = await apiGet(url, token);
+    return { event: detail, ok: true };
   } catch (err) {
-    console.warn(
-      `Could not fetch detail for event ${id}. Keeping list version.`
-    );
-    return event;
+    const msg = err && err.message ? err.message.split("\n")[0] : String(err);
+    return { event, ok: false, error: msg, status: err && err.status };
   }
 }
 
@@ -239,23 +150,20 @@ function writeCsv(events, filePath) {
 async function main() {
   ensureDir(OUT_DIR);
 
-  const token = await getAccessToken();
-
-  if (!ACCOUNT_ID) {
-    console.log(
-      "No WILD_APRICOT_ACCOUNT_ID provided. Discovering account ID..."
-    );
-    ACCOUNT_ID = await discoverAccountId(token);
-    console.log(`Using account ID: ${ACCOUNT_ID}`);
-  }
+  const { token, accountId } = await getAuthAndAccount();
 
   console.log("Fetching event list...");
-  const eventList = await getAllEvents(token, ACCOUNT_ID);
+  const eventList = await getAllEvents(token, accountId);
 
   console.log(`Found ${eventList.length} events.`);
-  console.log("Fetching event details...");
+  console.log(
+    `Fetching event details (${EVENT_REQUEST_DELAY_MS}ms between requests; event routes are often ~30/min)...`
+  );
 
   const detailedEvents = [];
+  const failures = [];
+  let okCount = 0;
+
   for (let i = 0; i < eventList.length; i++) {
     const event = eventList[i];
     const id =
@@ -265,28 +173,46 @@ async function main() {
       event.eventId ||
       `index-${i}`;
 
-    console.log(`[${i + 1}/${eventList.length}] Event ${id}`);
-    const detail = await getEventDetails(token, ACCOUNT_ID, event);
-    detailedEvents.push(detail);
+    process.stdout.write(`[${i + 1}/${eventList.length}] Event ${id}... `);
+    const result = await getEventDetails(token, accountId, event);
+    detailedEvents.push(result.event);
+
+    if (result.ok) {
+      okCount++;
+      console.log(result.skipped ? "skipped (no id)" : "ok");
+    } else {
+      failures.push({ eventId: id, status: result.status, error: result.error });
+      console.log(`FAILED (${result.status || "?"}): ${result.error}`);
+    }
+
+    if (i < eventList.length - 1) await sleep(EVENT_REQUEST_DELAY_MS);
   }
 
   const jsonPath = path.join(OUT_DIR, "wild-apricot-events.json");
   const csvPath = path.join(OUT_DIR, "wild-apricot-events.csv");
 
-  fs.writeFileSync(
-    jsonPath,
-    JSON.stringify(detailedEvents, null, 2),
-    "utf8"
-  );
+  fs.writeFileSync(jsonPath, JSON.stringify(detailedEvents, null, 2), "utf8");
   writeCsv(detailedEvents, csvPath);
+
+  if (failures.length) {
+    const failPath = path.join(OUT_DIR, "_detail_failures.json");
+    fs.writeFileSync(failPath, JSON.stringify(failures, null, 2), "utf8");
+    console.log("");
+    console.log(
+      `${failures.length} of ${eventList.length} events fell back to list-version data — see ${failPath}`
+    );
+  }
 
   console.log("");
   console.log("Done.");
+  console.log(`Detail fetched OK : ${okCount}/${eventList.length}`);
   console.log(`JSON: ${jsonPath}`);
   console.log(`CSV:  ${csvPath}`);
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}

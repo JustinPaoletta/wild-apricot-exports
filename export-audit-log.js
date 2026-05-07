@@ -30,26 +30,38 @@ function normalizeAuditItem(a) {
   };
 }
 
+function isoDate(d) {
+  return d.toISOString().slice(0, 10);
+}
+
 async function main() {
   ensureDir(OUT_DIR);
   const { token, accountId } = await getAuthAndAccount();
 
-  const params = {};
-  if (process.env.AUDIT_START_DATE) params.StartDate = process.env.AUDIT_START_DATE;
-  if (process.env.AUDIT_END_DATE) params.EndDate = process.env.AUDIT_END_DATE;
+  // The /accounts/{id}/auditLogItems endpoint REQUIRES a date range (or a
+  // FilterObjectType+Id, or explicit ids). Default to the last 30 days, which
+  // matches Wild Apricot's typical audit retention window on most plans.
+  const today = new Date();
+  const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const startDate = process.env.AUDIT_START_DATE || isoDate(thirtyDaysAgo);
+  const endDate = process.env.AUDIT_END_DATE || isoDate(today);
+
+  // The two endpoints use different param casing.
+  const rpcParams = { StartDate: startDate, EndDate: endDate };
+  const altParams = { startDate, endDate };
 
   const url = `${API_BASE}/rpc/${accountId}/ListAuditLogItems`;
-  console.log("Fetching audit log...");
+  console.log(`Fetching audit log (${startDate} to ${endDate})...`);
 
   let items = [];
   try {
-    items = await paginate(url, token, { top: 100, params });
+    items = await paginate(url, token, { top: 100, params: rpcParams });
   } catch (err) {
     // Some accounts expose this at a different path — try the alternate.
     console.warn(`  primary endpoint failed: ${err.message.split("\n")[0]}`);
     console.warn("  trying alternate /accounts/{id}/auditLogItems endpoint...");
     const alt = `${API_BASE}/accounts/${accountId}/auditLogItems`;
-    items = await paginate(alt, token, { top: 100, params });
+    items = await paginate(alt, token, { top: 100, params: altParams });
   }
 
   console.log(`Got ${items.length} audit log entries.`);
