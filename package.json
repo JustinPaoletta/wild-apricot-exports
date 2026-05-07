@@ -1,5 +1,5 @@
 {
-  "name": "wild-apricot-export",
+  "name": "wild-apricot-exports",
   "version": "1.0.0",
   "description": "Scripts for exporting Wild Apricot event data.",
   "main": "export-all.js",
