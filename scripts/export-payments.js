@@ -37,7 +37,7 @@ function normalizePayment(p) {
 
 async function main() {
   ensureDir(OUT_DIR);
-  const { token, accountId } = await getAuthAndAccount();
+  const { tokenManager, accountId } = await getAuthAndAccount();
 
   const params = {};
   if (process.env.PAYMENTS_START_DATE) params.StartDate = process.env.PAYMENTS_START_DATE;
@@ -45,7 +45,7 @@ async function main() {
 
   const url = `${API_BASE}/accounts/${accountId}/payments`;
   console.log("Fetching payments...");
-  const payments = await paginate(url, token, { top: 100, params });
+  const payments = await paginate(url, tokenManager, { top: 100, params });
 
   console.log(`Got ${payments.length} payments.`);
 

@@ -68,13 +68,13 @@ function normalizeContact(contact) {
 
 async function main() {
   ensureDir(OUT_DIR);
-  const { token, accountId } = await getAuthAndAccount();
+  const { tokenManager, accountId } = await getAuthAndAccount();
 
   const baseUrl = `${API_BASE}/accounts/${accountId}/contacts`;
 
   console.log("Fetching contacts via async API (this can take several minutes for large databases)...");
   // includeDetails=true returns custom field values inline
-  const result = await asyncQuery(baseUrl, token, { $async: "false", includeDetails: "true" });
+  const result = await asyncQuery(baseUrl, tokenManager, { $async: "false", includeDetails: "true" });
   const contacts = extractItems(result, "Contacts");
 
   console.log(`Got ${contacts.length} contacts.`);

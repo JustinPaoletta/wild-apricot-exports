@@ -35,7 +35,7 @@ function normalizeDonation(d) {
 
 async function main() {
   ensureDir(OUT_DIR);
-  const { token, accountId } = await getAuthAndAccount();
+  const { tokenManager, accountId } = await getAuthAndAccount();
 
   const params = {};
   if (process.env.DONATIONS_START_DATE) params.StartDate = process.env.DONATIONS_START_DATE;
@@ -43,7 +43,7 @@ async function main() {
 
   const url = `${API_BASE}/accounts/${accountId}/donations`;
   console.log("Fetching donations...");
-  const donations = await paginate(url, token, { top: 100, params });
+  const donations = await paginate(url, tokenManager, { top: 100, params });
 
   console.log(`Got ${donations.length} donations.`);
 

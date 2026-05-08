@@ -27,13 +27,13 @@ const ENDPOINTS = [
 
 async function main() {
   ensureDir(OUT_DIR);
-  const { token, accountId } = await getAuthAndAccount();
+  const { tokenManager, accountId } = await getAuthAndAccount();
 
   for (const endpoint of ENDPOINTS) {
     const url = `${API_BASE}/accounts/${accountId}${endpoint.path}`;
     process.stdout.write(`Fetching ${endpoint.name} (${url})... `);
     try {
-      const data = await apiGet(url, token);
+      const data = await apiGet(url, tokenManager);
       const filePath = path.join(OUT_DIR, `${endpoint.name}.json`);
       writeJson(data, filePath);
       const count = Array.isArray(data) ? data.length : data && data.Items ? data.Items.length : "ok";

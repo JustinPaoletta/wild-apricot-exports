@@ -36,7 +36,7 @@ function isoDate(d) {
 
 async function main() {
   ensureDir(OUT_DIR);
-  const { token, accountId } = await getAuthAndAccount();
+  const { tokenManager, accountId } = await getAuthAndAccount();
 
   // The /accounts/{id}/auditLogItems endpoint REQUIRES a date range (or a
   // FilterObjectType+Id, or explicit ids). Default to the last 30 days, which
@@ -55,13 +55,13 @@ async function main() {
 
   let items = [];
   try {
-    items = await paginate(url, token, { top: 100, params: rpcParams });
+    items = await paginate(url, tokenManager, { top: 100, params: rpcParams });
   } catch (err) {
     // Some accounts expose this at a different path — try the alternate.
     console.warn(`  primary endpoint failed: ${err.message.split("\n")[0]}`);
     console.warn("  trying alternate /accounts/{id}/auditLogItems endpoint...");
     const alt = `${API_BASE}/accounts/${accountId}/auditLogItems`;
-    items = await paginate(alt, token, { top: 100, params: altParams });
+    items = await paginate(alt, tokenManager, { top: 100, params: altParams });
   }
 
   console.log(`Got ${items.length} audit log entries.`);

@@ -94,7 +94,7 @@ async function main() {
     return;
   }
 
-  const { token, accountId } = await getAuthAndAccount();
+  const { tokenManager, accountId } = await getAuthAndAccount();
   const events = JSON.parse(fs.readFileSync(EVENTS_JSON, "utf8"));
   const eventsById = new Map(events.map((e) => [String(getId(e)), e]));
 
@@ -113,7 +113,7 @@ async function main() {
     try {
       const detail = await apiGet(
         `${API_BASE}/accounts/${accountId}/events/${id}`,
-        token
+        tokenManager
       );
       eventsById.set(String(id), detail);
       recovered++;

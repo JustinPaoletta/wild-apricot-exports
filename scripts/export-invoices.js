@@ -34,7 +34,7 @@ function normalizeInvoice(inv) {
 
 async function main() {
   ensureDir(OUT_DIR);
-  const { token, accountId } = await getAuthAndAccount();
+  const { tokenManager, accountId } = await getAuthAndAccount();
 
   const params = {};
   if (process.env.INVOICES_START_DATE) params.StartDate = process.env.INVOICES_START_DATE;
@@ -42,7 +42,7 @@ async function main() {
 
   const url = `${API_BASE}/accounts/${accountId}/invoices`;
   console.log("Fetching invoices...");
-  const invoices = await paginate(url, token, { top: 100, params });
+  const invoices = await paginate(url, tokenManager, { top: 100, params });
 
   console.log(`Got ${invoices.length} invoices.`);
 

@@ -27,14 +27,14 @@ const FAILURES_PATH = path.join(OUT_DIR, "_failures.json");
 const REQUEST_DELAY_MS = parseInt(process.env.WA_REQUEST_DELAY_MS || "350", 10);
 const SAVE_EVERY_N = parseInt(process.env.WA_REGISTRATIONS_SAVE_EVERY || "5", 10);
 
-async function getEventList(token, accountId) {
+async function getEventList(tokenManager, accountId) {
   if (fs.existsSync(EVENTS_CACHE)) {
     console.log(`Using cached event list: ${EVENTS_CACHE}`);
     return JSON.parse(fs.readFileSync(EVENTS_CACHE, "utf8"));
   }
   console.log("No cached events found — fetching event list...");
   const url = `${API_BASE}/accounts/${accountId}/events`;
-  return paginate(url, token, { top: 100 });
+  return paginate(url, tokenManager, { top: 100 });
 }
 
 function loadPartial() {
@@ -85,9 +85,9 @@ function normalizeRegistration(reg, event) {
 
 async function main() {
   ensureDir(OUT_DIR);
-  const { token, accountId } = await getAuthAndAccount();
+  const { tokenManager, accountId } = await getAuthAndAccount();
 
-  const events = await getEventList(token, accountId);
+  const events = await getEventList(tokenManager, accountId);
   console.log(`Will fetch registrations for ${events.length} events.`);
 
   const partial = loadPartial();
@@ -119,7 +119,7 @@ async function main() {
 
     try {
       const url = `${API_BASE}/accounts/${accountId}/eventregistrations?eventId=${id}&includeDetails=true`;
-      const data = await apiGet(url, token);
+      const data = await apiGet(url, tokenManager);
       const items = Array.isArray(data) ? data : data.Items || data.Registrations || [];
       for (const reg of items) {
         allRegistrations.push({ ...reg, _event: { Id: id, Name: title } });
