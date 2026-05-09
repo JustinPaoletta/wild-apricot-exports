@@ -1,55 +1,20 @@
-// export-config.js
-// Exports configuration / metadata: membership levels, contact field definitions,
-// picklists, saved searches, tenders, account settings.
-// Useful for documenting the site's setup before a migration.
+#!/usr/bin/env node
+// scripts/export-config.js — thin CLI shim over lib/exporters/config.js
+
+require("dotenv").config();
 
 const path = require("path");
-const {
-  API_BASE,
-  apiGet,
-  ensureDir,
-  writeJson,
-  getAuthAndAccount,
-} = require("../lib/wa-api");
-
-const OUT_DIR = path.join(process.cwd(), "exports", "config");
-
-const ENDPOINTS = [
-  { name: "account", path: "" },
-  { name: "membership-levels", path: "/membershiplevels" },
-  { name: "contact-fields", path: "/contactfields" },
-  { name: "saved-searches", path: "/savedsearches" },
-  { name: "tenders", path: "/tenders" },
-  { name: "picklists", path: "/picklists" },
-  { name: "campaigns", path: "/campaigns" },
-  { name: "funds", path: "/funds" },
-];
+const { exportConfig } = require("../lib/exporters/config");
 
 async function main() {
-  ensureDir(OUT_DIR);
-  const { tokenManager, accountId } = await getAuthAndAccount();
-
-  for (const endpoint of ENDPOINTS) {
-    const url = `${API_BASE}/accounts/${accountId}${endpoint.path}`;
-    process.stdout.write(`Fetching ${endpoint.name} (${url})... `);
-    try {
-      const data = await apiGet(url, tokenManager);
-      const filePath = path.join(OUT_DIR, `${endpoint.name}.json`);
-      writeJson(data, filePath);
-      const count = Array.isArray(data) ? data.length : data && data.Items ? data.Items.length : "ok";
-      console.log(`saved (${count})`);
-    } catch (err) {
-      console.log(`failed: ${err.message.split("\n")[0]}`);
-    }
-  }
-
-  console.log("");
-  console.log(`Config files saved to: ${OUT_DIR}`);
-}
-
-if (require.main === module) {
-  main().catch((err) => {
-    console.error(err);
-    process.exit(1);
+  await exportConfig({
+    apiKey: process.env.WILD_APRICOT_API_KEY,
+    accountId: process.env.WILD_APRICOT_ACCOUNT_ID,
+    outDir: path.join(process.cwd(), "exports"),
   });
 }
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

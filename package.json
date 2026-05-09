@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Scripts for exporting Wild Apricot event data.",
   "license": "MIT",
-  "main": "scripts/export-all.js",
+  "main": "lib/index.js",
   "scripts": {
     "export-all": "node scripts/export-all.js",
     "export-events": "node scripts/export-events.js",

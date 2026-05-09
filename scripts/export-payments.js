@@ -1,83 +1,22 @@
-// export-payments.js
-// Exports all payments. Override with PAYMENTS_START_DATE / PAYMENTS_END_DATE in .env.
+#!/usr/bin/env node
+// scripts/export-payments.js — thin CLI shim over lib/exporters/payments.js
+
+require("dotenv").config();
 
 const path = require("path");
-const {
-  API_BASE,
-  paginate,
-  ensureDir,
-  writeJson,
-  writeCsv,
-  getNested,
-  getAuthAndAccount,
-} = require("../lib/wa-api");
-
-const OUT_DIR = path.join(process.cwd(), "exports", "payments");
-
-function normalizePayment(p) {
-  const allocations = (p.Allocations || p.allocations || [])
-    .map((a) => `inv:${a.InvoiceId || a.invoiceId || ""}=${a.Value || a.value || ""}`)
-    .join("; ");
-
-  return {
-    id: getNested(p, ["Id", "id"]),
-    documentNumber: getNested(p, ["DocumentNumber", "documentNumber"]),
-    documentDate: getNested(p, ["DocumentDate", "documentDate"]),
-    contactId: getNested(p, ["Contact.Id", "ContactId"]),
-    contactName: getNested(p, ["Contact.Name", "Contact.DisplayName"]),
-    value: getNested(p, ["Value", "value"]),
-    tenderName: getNested(p, ["Tender.Name", "TenderName"]),
-    tenderId: getNested(p, ["Tender.Id", "TenderId"]),
-    refundedAmount: getNested(p, ["RefundedAmount"]),
-    comment: getNested(p, ["Comment", "comment"]),
-    allocations,
-    url: getNested(p, ["Url", "url"]),
-  };
-}
+const { exportPayments } = require("../lib/exporters/payments");
 
 async function main() {
-  ensureDir(OUT_DIR);
-  const { tokenManager, accountId } = await getAuthAndAccount();
-
-  const params = {};
-  if (process.env.PAYMENTS_START_DATE) params.StartDate = process.env.PAYMENTS_START_DATE;
-  if (process.env.PAYMENTS_END_DATE) params.EndDate = process.env.PAYMENTS_END_DATE;
-
-  const url = `${API_BASE}/accounts/${accountId}/payments`;
-  console.log("Fetching payments...");
-  const payments = await paginate(url, tokenManager, { top: 100, params });
-
-  console.log(`Got ${payments.length} payments.`);
-
-  const jsonPath = path.join(OUT_DIR, "payments.json");
-  const csvPath = path.join(OUT_DIR, "payments.csv");
-  writeJson(payments, jsonPath);
-
-  const columns = [
-    "id",
-    "documentNumber",
-    "documentDate",
-    "contactId",
-    "contactName",
-    "value",
-    "tenderName",
-    "tenderId",
-    "refundedAmount",
-    "comment",
-    "allocations",
-    "url",
-  ];
-  writeCsv(payments.map(normalizePayment), columns, csvPath);
-
-  console.log("");
-  console.log("Done.");
-  console.log(`JSON: ${jsonPath}`);
-  console.log(`CSV:  ${csvPath}`);
-}
-
-if (require.main === module) {
-  main().catch((err) => {
-    console.error(err);
-    process.exit(1);
+  await exportPayments({
+    apiKey: process.env.WILD_APRICOT_API_KEY,
+    accountId: process.env.WILD_APRICOT_ACCOUNT_ID,
+    outDir: path.join(process.cwd(), "exports"),
+    startDate: process.env.PAYMENTS_START_DATE,
+    endDate: process.env.PAYMENTS_END_DATE,
   });
 }
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
