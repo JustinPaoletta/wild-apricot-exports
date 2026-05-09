@@ -1,24 +1,83 @@
 {
   "name": "wild-apricot-exports",
-  "version": "1.0.0",
-  "description": "Scripts for exporting Wild Apricot event data.",
+  "version": "0.1.0",
+  "description": "Export every contact, event, registration, invoice, payment, donation, audit log entry, and uploaded file out of a Wild Apricot account to JSON, CSV, and disk — usable as a CLI (wa-export) or as a Node library.",
   "license": "MIT",
-  "main": "lib/index.js",
+  "author": "Justin Paoletta",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JustinPaoletta/wild-apricot-exports.git"
+  },
+  "homepage": "https://github.com/JustinPaoletta/wild-apricot-exports#readme",
+  "bugs": {
+    "url": "https://github.com/JustinPaoletta/wild-apricot-exports/issues"
+  },
+  "keywords": [
+    "wild-apricot",
+    "wildapricot",
+    "export",
+    "backup",
+    "membership",
+    "nonprofit",
+    "association",
+    "csv",
+    "json",
+    "webdav",
+    "cli",
+    "typescript"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "wa-export": "bin/wa-export.js",
+    "wild-apricot-exports": "bin/wa-export.js"
+  },
+  "files": [
+    "bin/",
+    "dist/",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
   "scripts": {
-    "export-all": "node scripts/export-all.js",
-    "export-events": "node scripts/export-events.js",
-    "retry-event-failures": "node scripts/retry-event-failures.js",
-    "export-registrations": "node scripts/export-registrations.js",
-    "export-contacts": "node scripts/export-contacts.js",
-    "export-invoices": "node scripts/export-invoices.js",
-    "export-payments": "node scripts/export-payments.js",
-    "export-donations": "node scripts/export-donations.js",
-    "export-audit-log": "node scripts/export-audit-log.js",
-    "export-config": "node scripts/export-config.js",
-    "export-files": "node scripts/export-files.js"
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "wa-export": "node bin/wa-export.js",
+    "prepublishOnly": "npm run clean && npm run build && npm test",
+    "export-all": "node bin/wa-export.js all",
+    "export-config": "node bin/wa-export.js config",
+    "export-events": "node bin/wa-export.js events",
+    "retry-event-failures": "node bin/wa-export.js retry-events",
+    "export-registrations": "node bin/wa-export.js registrations",
+    "export-contacts": "node bin/wa-export.js contacts",
+    "export-invoices": "node bin/wa-export.js invoices",
+    "export-payments": "node bin/wa-export.js payments",
+    "export-donations": "node bin/wa-export.js donations",
+    "export-audit-log": "node bin/wa-export.js audit-log",
+    "export-files": "node bin/wa-export.js files"
   },
   "dependencies": {
+    "commander": "^14.0.3",
     "dotenv": "^16.0.0",
-    "webdav": "^5.10.0"
+    "webdav": "^5.10.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.2",
+    "typescript": "^6.0.3",
+    "vitest": "^3.2.4"
   }
 }
