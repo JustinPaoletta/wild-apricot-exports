@@ -47,16 +47,22 @@
     "dist/",
     "README.md",
     "LICENSE",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "CODE_OF_CONDUCT.md"
   ],
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc --watch",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "vitest run",
     "wa-export": "node bin/wa-export.js",
-    "prepublishOnly": "npm run clean && npm run build && npm test",
+    "prepublishOnly": "npm run lint && npm run format:check && npm run typecheck && npm run clean && npm run build && npm test",
     "export-all": "node bin/wa-export.js all",
     "export-config": "node bin/wa-export.js config",
     "export-events": "node bin/wa-export.js events",
@@ -76,8 +82,13 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.2",
     "@types/node": "^25.6.2",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.8.1",
     "typescript": "^6.0.3",
+    "typescript-eslint": "^8.53.1",
     "vitest": "^3.2.4"
   }
 }

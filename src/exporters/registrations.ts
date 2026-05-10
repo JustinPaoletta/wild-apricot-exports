@@ -23,11 +23,7 @@ import {
 } from "../wa-api";
 import { RegistrationsExportOptionsSchema } from "../schemas";
 import { resolveLogger } from "../logger";
-import type {
-  RegistrationsExportOptions,
-  RegistrationsExportResult,
-  Logger,
-} from "../types";
+import type { RegistrationsExportOptions, RegistrationsExportResult, Logger } from "../types";
 
 const DEFAULT_REQUEST_DELAY_MS = 350;
 const DEFAULT_SAVE_EVERY_N = 5;
@@ -51,14 +47,8 @@ function loadPartial(partialPath: string, logger: Logger): PartialState {
   };
   if (!fs.existsSync(partialPath)) return empty;
   try {
-    const raw = JSON.parse(
-      fs.readFileSync(partialPath, "utf8")
-    ) as Partial<PartialState>;
-    if (
-      raw &&
-      Array.isArray(raw.completedEventIds) &&
-      Array.isArray(raw.registrations)
-    ) {
+    const raw = JSON.parse(fs.readFileSync(partialPath, "utf8")) as Partial<PartialState>;
+    if (raw && Array.isArray(raw.completedEventIds) && Array.isArray(raw.registrations)) {
       return {
         completedEventIds: raw.completedEventIds,
         registrations: raw.registrations,
@@ -81,10 +71,7 @@ interface RegistrationWithEvent {
   [key: string]: unknown;
 }
 
-function normalizeRegistration(
-  reg: unknown,
-  event: unknown
-): Record<string, unknown> {
+function normalizeRegistration(reg: unknown, event: unknown): Record<string, unknown> {
   const regObj = (reg ?? {}) as Record<string, unknown>;
   const contact =
     (regObj.Contact as Record<string, unknown> | undefined) ??
@@ -92,28 +79,17 @@ function normalizeRegistration(
     {};
   return {
     registrationId: getNested(reg, ["Id", "id"]),
-    eventId:
-      getNested(event, ["Id", "id"]) || getNested(reg, ["Event.Id", "EventId"]),
+    eventId: getNested(event, ["Id", "id"]) || getNested(reg, ["Event.Id", "EventId"]),
     eventTitle: getNested(event, ["Name", "Title"]) || "",
     eventStartDate: getNested(event, ["StartDate", "StartDateTime"]) || "",
-    contactId:
-      getNested(contact, ["Id", "id"]) || getNested(reg, ["ContactId"]),
+    contactId: getNested(contact, ["Id", "id"]) || getNested(reg, ["ContactId"]),
     firstName: getNested(contact, ["FirstName", "firstName"]),
     lastName: getNested(contact, ["LastName", "lastName"]),
-    email:
-      getNested(contact, ["Email", "email"]) ||
-      getNested(reg, ["RegistrationFields.Email"]),
+    email: getNested(contact, ["Email", "email"]) || getNested(reg, ["RegistrationFields.Email"]),
     displayName:
-      getNested(reg, ["DisplayName", "displayName"]) ||
-      getNested(contact, ["DisplayName"]),
-    registrationTypeName: getNested(reg, [
-      "RegistrationType.Name",
-      "RegistrationTypeName",
-    ]),
-    registrationTypeId: getNested(reg, [
-      "RegistrationTypeId",
-      "RegistrationType.Id",
-    ]),
+      getNested(reg, ["DisplayName", "displayName"]) || getNested(contact, ["DisplayName"]),
+    registrationTypeName: getNested(reg, ["RegistrationType.Name", "RegistrationTypeName"]),
+    registrationTypeId: getNested(reg, ["RegistrationTypeId", "RegistrationType.Id"]),
     isPaid: getNested(reg, ["IsPaid", "isPaid"]),
     paidSum: getNested(reg, ["PaidSum", "paidSum"]),
     invoiceId: getNested(reg, ["InvoiceId", "invoiceId"]),
@@ -136,11 +112,8 @@ export async function exportRegistrations(
   const partialPath = path.join(outDir, "registrations.partial.json");
   const failuresPath = path.join(outDir, "_failures.json");
   const requestDelayMs =
-    typeof opts.requestDelayMs === "number"
-      ? opts.requestDelayMs
-      : DEFAULT_REQUEST_DELAY_MS;
-  const saveEveryN =
-    typeof opts.saveEveryN === "number" ? opts.saveEveryN : DEFAULT_SAVE_EVERY_N;
+    typeof opts.requestDelayMs === "number" ? opts.requestDelayMs : DEFAULT_REQUEST_DELAY_MS;
+  const saveEveryN = typeof opts.saveEveryN === "number" ? opts.saveEveryN : DEFAULT_SAVE_EVERY_N;
 
   ensureDir(outDir);
 
@@ -255,9 +228,7 @@ export async function exportRegistrations(
   const csvPath = path.join(outDir, "registrations.csv");
   writeJson(allRegistrations, jsonPath);
 
-  const normalized = allRegistrations.map((r) =>
-    normalizeRegistration(r, r._event ?? {})
-  );
+  const normalized = allRegistrations.map((r) => normalizeRegistration(r, r._event ?? {}));
   const columns = [
     "registrationId",
     "eventId",

@@ -4,10 +4,7 @@
 import * as fs from "node:fs";
 import { Buffer } from "node:buffer";
 
-import {
-  TokenResponseSchema,
-  PaginatedResponseSchema,
-} from "./schemas";
+import { TokenResponseSchema, PaginatedResponseSchema } from "./schemas";
 import { resolveLogger } from "./logger";
 import type { Logger, TokenManager, AuthAndAccount } from "./types";
 
@@ -79,9 +76,7 @@ async function fetchTokenResponse(
 
   if (!response.ok) {
     const body = await response.text();
-    throw new Error(
-      `Token request failed: ${response.status} ${response.statusText}\n${body}`
-    );
+    throw new Error(`Token request failed: ${response.status} ${response.statusText}\n${body}`);
   }
 
   const dataRaw = await response.json();
@@ -92,10 +87,7 @@ async function fetchTokenResponse(
   };
 }
 
-export async function getAccessToken(
-  apiKey: string,
-  signal?: AbortSignal
-): Promise<string> {
+export async function getAccessToken(apiKey: string, signal?: AbortSignal): Promise<string> {
   const { accessToken } = await fetchTokenResponse(apiKey, signal);
   return accessToken;
 }
@@ -121,10 +113,7 @@ export function createTokenManager(
   async function refresh(): Promise<string> {
     if (inflight) return inflight;
     inflight = (async () => {
-      const { accessToken, expiresIn } = await fetchTokenResponse(
-        apiKey,
-        options.signal
-      );
+      const { accessToken, expiresIn } = await fetchTokenResponse(apiKey, options.signal);
       cachedToken = accessToken;
       const lifetimeMs = (expiresIn ? expiresIn : 1800) * 1000;
       expiresAtMs = Date.now() + lifetimeMs;
@@ -148,8 +137,8 @@ export function createTokenManager(
 function isTokenManager(value: unknown): value is TokenManager {
   return Boolean(
     value &&
-      typeof value === "object" &&
-      (value as { isTokenManager?: unknown }).isTokenManager === true
+    typeof value === "object" &&
+    (value as { isTokenManager?: unknown }).isTokenManager === true
   );
 }
 
@@ -227,15 +216,9 @@ export async function apiFetch(
           err.status = 429;
           throw err;
         }
-        const headerSeconds = parseInt(
-          response.headers.get("Retry-After") || "0",
-          10
-        );
+        const headerSeconds = parseInt(response.headers.get("Retry-After") || "0", 10);
         // 10s, 20s, 40s, 80s, 160s, then capped at maxBackoffSeconds
-        const backoff = Math.min(
-          10 * Math.pow(2, rateLimitAttempt - 1),
-          maxBackoffSeconds
-        );
+        const backoff = Math.min(10 * Math.pow(2, rateLimitAttempt - 1), maxBackoffSeconds);
         const waitSeconds = Math.max(headerSeconds, backoff);
         log.warn(
           `  [429] rate limited (${rateLimitAttempt}/${rateLimitRetries}) — waiting ${waitSeconds}s`
@@ -271,11 +254,8 @@ export async function apiFetch(
         try {
           await manager.refresh();
         } catch (refreshErr) {
-          const message =
-            refreshErr instanceof Error ? refreshErr.message : String(refreshErr);
-          const err: ApiError = new Error(
-            `Failed to refresh access token after 401: ${message}`
-          );
+          const message = refreshErr instanceof Error ? refreshErr.message : String(refreshErr);
+          const err: ApiError = new Error(`Failed to refresh access token after 401: ${message}`);
           err.status = 401;
           throw err;
         }
@@ -322,21 +302,13 @@ export async function apiFetch(
       // the caller passed a raw string token (no manager) — retry it as
       // before, even though the same token will probably keep failing.
       const isTransient4xx = apiErr.status === 401 || apiErr.status === 408;
-      if (
-        apiErr.status &&
-        apiErr.status >= 400 &&
-        apiErr.status < 500 &&
-        !isTransient4xx
-      ) {
+      if (apiErr.status && apiErr.status >= 400 && apiErr.status < 500 && !isTransient4xx) {
         throw err;
       }
       attempt++;
       if (attempt > retries) break;
       const delay = 1000 * Math.pow(2, attempt - 1);
-      const msg =
-        err instanceof Error
-          ? err.message.split("\n")[0]
-          : String(err);
+      const msg = err instanceof Error ? err.message.split("\n")[0] : String(err);
       log.warn(`  [retry ${attempt}/${retries}] ${msg} — waiting ${delay}ms`);
       await sleep(delay, signal);
     }
@@ -371,10 +343,7 @@ export async function discoverAccountId(
     throw new Error(`No accounts found:\n${JSON.stringify(data, null, 2)}`);
   }
   const a = accounts[0] as Record<string, unknown>;
-  const id = (a.Id ?? a.id ?? a.AccountId ?? a.accountId) as
-    | string
-    | number
-    | undefined;
+  const id = (a.Id ?? a.id ?? a.AccountId ?? a.accountId) as string | number | undefined;
   if (!id) {
     throw new Error(`Could not discover account ID:\n${JSON.stringify(a, null, 2)}`);
   }
@@ -553,9 +522,7 @@ export interface GetAuthAndAccountOptions {
   logger?: Logger;
 }
 
-export async function getAuthAndAccount(
-  opts: GetAuthAndAccountOptions
-): Promise<AuthAndAccount> {
+export async function getAuthAndAccount(opts: GetAuthAndAccountOptions): Promise<AuthAndAccount> {
   if (!opts || !opts.apiKey) {
     throw new Error(
       "Missing apiKey — pass opts.apiKey or set WILD_APRICOT_API_KEY in your CLI shim."

@@ -14,10 +14,7 @@ import {
 } from "../wa-api";
 import { DonationsExportOptionsSchema } from "../schemas";
 import { resolveLogger } from "../logger";
-import type {
-  DonationsExportOptions,
-  DonationsExportResult,
-} from "../types";
+import type { DonationsExportOptions, DonationsExportResult } from "../types";
 
 function normalizeDonation(d: unknown): Record<string, unknown> {
   return {

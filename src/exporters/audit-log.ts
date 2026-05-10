@@ -17,10 +17,7 @@ import {
 } from "../wa-api";
 import { AuditLogExportOptionsSchema } from "../schemas";
 import { resolveLogger } from "../logger";
-import type {
-  AuditLogExportOptions,
-  AuditLogExportResult,
-} from "../types";
+import type { AuditLogExportOptions, AuditLogExportResult } from "../types";
 
 function normalizeAuditItem(a: unknown): Record<string, unknown> {
   return {
@@ -39,9 +36,7 @@ function isoDate(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
-export async function exportAuditLog(
-  opts: AuditLogExportOptions
-): Promise<AuditLogExportResult> {
+export async function exportAuditLog(opts: AuditLogExportOptions): Promise<AuditLogExportResult> {
   AuditLogExportOptionsSchema.parse(opts);
   const logger = resolveLogger(opts.logger);
 

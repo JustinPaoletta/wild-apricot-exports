@@ -37,20 +37,13 @@ const ORDERED_STEPS: AllStepName[] = [
   "files",
 ];
 
-export async function exportAll(
-  opts: ExportAllOptions
-): Promise<ExportAllResult> {
+export async function exportAll(opts: ExportAllOptions): Promise<ExportAllResult> {
   const logger = resolveLogger(opts.logger);
   const outDir = opts.outDir || "./exports";
 
-  const include =
-    Array.isArray(opts.include) && opts.include.length
-      ? opts.include
-      : ORDERED_STEPS;
+  const include = Array.isArray(opts.include) && opts.include.length ? opts.include : ORDERED_STEPS;
   const exclude = new Set<AllStepName>(opts.exclude ?? []);
-  const steps = ORDERED_STEPS.filter(
-    (s) => include.includes(s) && !exclude.has(s)
-  );
+  const steps = ORDERED_STEPS.filter((s) => include.includes(s) && !exclude.has(s));
 
   const results: AllStepResult[] = [];
 
@@ -60,10 +53,7 @@ export async function exportAll(
   // own list from the API.
   let cachedEvents: unknown[] | null = null;
 
-  function envelope(
-    step: AllStepName,
-    fn: () => Promise<unknown>
-  ): Promise<AllStepResult> {
+  function envelope(step: AllStepName, fn: () => Promise<unknown>): Promise<AllStepResult> {
     return (async () => {
       const banner =
         "===============================================================================";
@@ -111,9 +101,7 @@ export async function exportAll(
           // Read the JSON we just wrote so we can pass it through to
           // exportRegistrations without re-fetching from the API.
           try {
-            cachedEvents = JSON.parse(
-              fs.readFileSync(r.jsonPath, "utf8")
-            ) as unknown[];
+            cachedEvents = JSON.parse(fs.readFileSync(r.jsonPath, "utf8")) as unknown[];
           } catch {
             cachedEvents = null;
           }
@@ -131,9 +119,7 @@ export async function exportAll(
           const eventsJson = path.join(outDir, "events", "wild-apricot-events.json");
           if (fs.existsSync(eventsJson)) {
             try {
-              events = JSON.parse(
-                fs.readFileSync(eventsJson, "utf8")
-              ) as unknown[];
+              events = JSON.parse(fs.readFileSync(eventsJson, "utf8")) as unknown[];
             } catch {
               events = undefined;
             }
@@ -226,8 +212,7 @@ export async function exportAll(
           result = {
             step,
             ok: false,
-            error:
-              "webdavUrl, adminEmail, and adminPassword required to export files",
+            error: "webdavUrl, adminEmail, and adminPassword required to export files",
           };
         } else {
           result = await envelope(step, () =>
@@ -256,13 +241,9 @@ export async function exportAll(
 
   const failedCount = results.filter((r) => !r.ok).length;
 
-  logger.info(
-    "\n==============================================================================="
-  );
+  logger.info("\n===============================================================================");
   logger.info("# Summary");
-  logger.info(
-    "==============================================================================="
-  );
+  logger.info("===============================================================================");
   for (const r of results) {
     if (r.ok) logger.info(`  ✓ ${r.step}`);
     else logger.info(`  ✗ ${r.step}: ${r.error}`);

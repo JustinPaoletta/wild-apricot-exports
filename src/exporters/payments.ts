@@ -14,10 +14,7 @@ import {
 } from "../wa-api";
 import { PaymentsExportOptionsSchema } from "../schemas";
 import { resolveLogger } from "../logger";
-import type {
-  PaymentsExportOptions,
-  PaymentsExportResult,
-} from "../types";
+import type { PaymentsExportOptions, PaymentsExportResult } from "../types";
 
 interface AllocationRow {
   InvoiceId?: string | number;
@@ -33,10 +30,7 @@ function normalizePayment(p: unknown): Record<string, unknown> {
     (obj.allocations as AllocationRow[] | undefined) ??
     [];
   const allocations = allocationsRaw
-    .map(
-      (a) =>
-        `inv:${a.InvoiceId ?? a.invoiceId ?? ""}=${a.Value ?? a.value ?? ""}`
-    )
+    .map((a) => `inv:${a.InvoiceId ?? a.invoiceId ?? ""}=${a.Value ?? a.value ?? ""}`)
     .join("; ");
 
   return {
@@ -55,9 +49,7 @@ function normalizePayment(p: unknown): Record<string, unknown> {
   };
 }
 
-export async function exportPayments(
-  opts: PaymentsExportOptions
-): Promise<PaymentsExportResult> {
+export async function exportPayments(opts: PaymentsExportOptions): Promise<PaymentsExportResult> {
   PaymentsExportOptionsSchema.parse(opts);
   const logger = resolveLogger(opts.logger);
 

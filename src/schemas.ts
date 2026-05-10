@@ -50,8 +50,14 @@ export const RegistrationsExportOptionsSchema = z.object({
 
 const dateRangeShape = {
   ...baseExportOptionsShape,
-  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Expected YYYY-MM-DD").optional(),
-  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Expected YYYY-MM-DD").optional(),
+  startDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Expected YYYY-MM-DD")
+    .optional(),
+  endDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Expected YYYY-MM-DD")
+    .optional(),
 };
 
 export const InvoicesExportOptionsSchema = z.object(dateRangeShape);

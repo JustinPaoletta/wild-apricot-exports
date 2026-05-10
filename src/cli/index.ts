@@ -60,8 +60,7 @@ function getCommonEnv(globalOpts: GlobalCliOpts): CommonEnv {
   const outDir = globalOpts.outDir
     ? path.resolve(process.cwd(), globalOpts.outDir)
     : path.join(process.cwd(), "exports");
-  const accountId =
-    globalOpts.accountId ?? process.env.WILD_APRICOT_ACCOUNT_ID;
+  const accountId = globalOpts.accountId ?? process.env.WILD_APRICOT_ACCOUNT_ID;
   return {
     apiKey,
     accountId:
@@ -150,10 +149,7 @@ export function buildCli(): Command {
       "Root output directory (subdirs are created per exporter)",
       "exports"
     )
-    .option(
-      "--api-key <key>",
-      "Wild Apricot API key (overrides WILD_APRICOT_API_KEY)"
-    )
+    .option("--api-key <key>", "Wild Apricot API key (overrides WILD_APRICOT_API_KEY)")
     .option(
       "--account-id <id>",
       "Wild Apricot account ID (overrides WILD_APRICOT_ACCOUNT_ID; auto-discovered if omitted)"
@@ -165,86 +161,103 @@ export function buildCli(): Command {
   // ----- all -----
   program
     .command("all")
-    .description("Run every exporter in sequence (config → events → registrations → contacts → invoices → payments → donations → audit-log → files).")
+    .description(
+      "Run every exporter in sequence (config → events → registrations → contacts → invoices → payments → donations → audit-log → files)."
+    )
     .option("--include <steps>", "Comma-separated whitelist of steps to run.")
     .option("--exclude <steps>", "Comma-separated steps to skip.")
-    .option("--start-date <YYYY-MM-DD>", "Lower bound for date-filterable exporters (invoices/payments/donations/audit-log).")
+    .option(
+      "--start-date <YYYY-MM-DD>",
+      "Lower bound for date-filterable exporters (invoices/payments/donations/audit-log)."
+    )
     .option("--end-date <YYYY-MM-DD>", "Upper bound for date-filterable exporters.")
-    .option("--file-dirs <dirs>", "Comma-separated top-level WebDAV directories to crawl (defaults to full root).")
-    .action(async (
-      cmdOpts: {
-        include?: string;
-        exclude?: string;
-        startDate?: string;
-        endDate?: string;
-        fileDirs?: string;
-      },
-      cmd: Command
-    ) => {
-      const g = readGlobalOpts(cmd);
-      const env = getCommonEnv(g);
-      const logger = resolveCliLogger(g);
-      const include = cmdOpts.include
-        ? (cmdOpts.include.split(",").map((s) => s.trim()).filter(Boolean) as AllStepName[])
-        : undefined;
-      const exclude = cmdOpts.exclude
-        ? (cmdOpts.exclude.split(",").map((s) => s.trim()).filter(Boolean) as AllStepName[])
-        : undefined;
-      const fileDirs = cmdOpts.fileDirs
-        ? cmdOpts.fileDirs.split(",").map((s) => s.trim()).filter(Boolean)
-        : process.env.WILD_APRICOT_FILE_DIRS
-          ? process.env.WILD_APRICOT_FILE_DIRS.split(",").map((s) => s.trim()).filter(Boolean)
+    .option(
+      "--file-dirs <dirs>",
+      "Comma-separated top-level WebDAV directories to crawl (defaults to full root)."
+    )
+    .action(
+      async (
+        cmdOpts: {
+          include?: string;
+          exclude?: string;
+          startDate?: string;
+          endDate?: string;
+          fileDirs?: string;
+        },
+        cmd: Command
+      ) => {
+        const g = readGlobalOpts(cmd);
+        const env = getCommonEnv(g);
+        const logger = resolveCliLogger(g);
+        const include = cmdOpts.include
+          ? (cmdOpts.include
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean) as AllStepName[])
           : undefined;
+        const exclude = cmdOpts.exclude
+          ? (cmdOpts.exclude
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean) as AllStepName[])
+          : undefined;
+        const fileDirs = cmdOpts.fileDirs
+          ? cmdOpts.fileDirs
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean)
+          : process.env.WILD_APRICOT_FILE_DIRS
+            ? process.env.WILD_APRICOT_FILE_DIRS.split(",")
+                .map((s) => s.trim())
+                .filter(Boolean)
+            : undefined;
 
-      const cliDates =
-        cmdOpts.startDate || cmdOpts.endDate
-          ? { startDate: cmdOpts.startDate, endDate: cmdOpts.endDate }
-          : {};
+        const cliDates =
+          cmdOpts.startDate || cmdOpts.endDate
+            ? { startDate: cmdOpts.startDate, endDate: cmdOpts.endDate }
+            : {};
 
-      await runOrExit(() =>
-        exportAll({
-          apiKey: env.apiKey,
-          accountId: env.accountId,
-          outDir: env.outDir,
-          logger,
-          signal: makeAbortSignal(),
-          include,
-          exclude,
-          webdavUrl: process.env.WILD_APRICOT_WEBDAV_URL,
-          adminEmail: process.env.WILD_APRICOT_ADMIN_EMAIL,
-          adminPassword: process.env.WILD_APRICOT_ADMIN_PASSWORD,
-          fileDirs,
-          invoicesOptions: {
-            startDate:
-              cliDates.startDate ?? process.env.INVOICES_START_DATE,
-            endDate: cliDates.endDate ?? process.env.INVOICES_END_DATE,
-          },
-          paymentsOptions: {
-            startDate:
-              cliDates.startDate ?? process.env.PAYMENTS_START_DATE,
-            endDate: cliDates.endDate ?? process.env.PAYMENTS_END_DATE,
-          },
-          donationsOptions: {
-            startDate:
-              cliDates.startDate ?? process.env.DONATIONS_START_DATE,
-            endDate: cliDates.endDate ?? process.env.DONATIONS_END_DATE,
-          },
-          auditLogOptions: {
-            startDate:
-              cliDates.startDate ?? process.env.AUDIT_START_DATE,
-            endDate: cliDates.endDate ?? process.env.AUDIT_END_DATE,
-          },
-          eventsOptions: {
-            requestDelayMs: envInt("WA_EVENT_REQUEST_DELAY_MS"),
-            saveEveryN: envInt("WA_EVENTS_SAVE_EVERY"),
-          },
-          registrationsOptions: {
-            requestDelayMs: envInt("WA_REQUEST_DELAY_MS"),
-            saveEveryN: envInt("WA_REGISTRATIONS_SAVE_EVERY"),
-          },
-        })
-      );
-    });
+        await runOrExit(() =>
+          exportAll({
+            apiKey: env.apiKey,
+            accountId: env.accountId,
+            outDir: env.outDir,
+            logger,
+            signal: makeAbortSignal(),
+            include,
+            exclude,
+            webdavUrl: process.env.WILD_APRICOT_WEBDAV_URL,
+            adminEmail: process.env.WILD_APRICOT_ADMIN_EMAIL,
+            adminPassword: process.env.WILD_APRICOT_ADMIN_PASSWORD,
+            fileDirs,
+            invoicesOptions: {
+              startDate: cliDates.startDate ?? process.env.INVOICES_START_DATE,
+              endDate: cliDates.endDate ?? process.env.INVOICES_END_DATE,
+            },
+            paymentsOptions: {
+              startDate: cliDates.startDate ?? process.env.PAYMENTS_START_DATE,
+              endDate: cliDates.endDate ?? process.env.PAYMENTS_END_DATE,
+            },
+            donationsOptions: {
+              startDate: cliDates.startDate ?? process.env.DONATIONS_START_DATE,
+              endDate: cliDates.endDate ?? process.env.DONATIONS_END_DATE,
+            },
+            auditLogOptions: {
+              startDate: cliDates.startDate ?? process.env.AUDIT_START_DATE,
+              endDate: cliDates.endDate ?? process.env.AUDIT_END_DATE,
+            },
+            eventsOptions: {
+              requestDelayMs: envInt("WA_EVENT_REQUEST_DELAY_MS"),
+              saveEveryN: envInt("WA_EVENTS_SAVE_EVERY"),
+            },
+            registrationsOptions: {
+              requestDelayMs: envInt("WA_REQUEST_DELAY_MS"),
+              saveEveryN: envInt("WA_REGISTRATIONS_SAVE_EVERY"),
+            },
+          })
+        );
+      }
+    );
 
   // ----- config -----
   program
@@ -269,8 +282,14 @@ export function buildCli(): Command {
   program
     .command("events")
     .description("Export every event with its full detail payload (resumable via _partial.json).")
-    .option("--request-delay-ms <ms>", "Spacing between event-detail requests.", (v) => parseInt(v, 10))
-    .option("--save-every-n <n>", "Checkpoint cadence (events processed between writes to _partial.json).", (v) => parseInt(v, 10))
+    .option("--request-delay-ms <ms>", "Spacing between event-detail requests.", (v) =>
+      parseInt(v, 10)
+    )
+    .option(
+      "--save-every-n <n>",
+      "Checkpoint cadence (events processed between writes to _partial.json).",
+      (v) => parseInt(v, 10)
+    )
     .action(async (cmdOpts: { requestDelayMs?: number; saveEveryN?: number }, cmd: Command) => {
       const g = readGlobalOpts(cmd);
       const env = getCommonEnv(g);
@@ -282,8 +301,7 @@ export function buildCli(): Command {
           outDir: env.outDir,
           logger,
           signal: makeAbortSignal(),
-          requestDelayMs:
-            cmdOpts.requestDelayMs ?? envInt("WA_EVENT_REQUEST_DELAY_MS"),
+          requestDelayMs: cmdOpts.requestDelayMs ?? envInt("WA_EVENT_REQUEST_DELAY_MS"),
           saveEveryN: cmdOpts.saveEveryN ?? envInt("WA_EVENTS_SAVE_EVERY"),
         })
       );
@@ -292,8 +310,12 @@ export function buildCli(): Command {
   // ----- retry-events -----
   program
     .command("retry-events")
-    .description("Re-fetch events listed in <outDir>/events/_detail_failures.json and merge successes back in.")
-    .option("--request-delay-ms <ms>", "Spacing between event-detail requests.", (v) => parseInt(v, 10))
+    .description(
+      "Re-fetch events listed in <outDir>/events/_detail_failures.json and merge successes back in."
+    )
+    .option("--request-delay-ms <ms>", "Spacing between event-detail requests.", (v) =>
+      parseInt(v, 10)
+    )
     .action(async (cmdOpts: { requestDelayMs?: number }, cmd: Command) => {
       const g = readGlobalOpts(cmd);
       const env = getCommonEnv(g);
@@ -305,8 +327,7 @@ export function buildCli(): Command {
           outDir: env.outDir,
           logger,
           signal: makeAbortSignal(),
-          requestDelayMs:
-            cmdOpts.requestDelayMs ?? envInt("WA_EVENT_REQUEST_DELAY_MS"),
+          requestDelayMs: cmdOpts.requestDelayMs ?? envInt("WA_EVENT_REQUEST_DELAY_MS"),
         })
       );
     });
@@ -314,9 +335,17 @@ export function buildCli(): Command {
   // ----- registrations -----
   program
     .command("registrations")
-    .description("Export event registrations for every event (resumable via registrations.partial.json).")
-    .option("--request-delay-ms <ms>", "Spacing between per-event registration fetches.", (v) => parseInt(v, 10))
-    .option("--save-every-n <n>", "Checkpoint cadence (events processed between writes to partial.json).", (v) => parseInt(v, 10))
+    .description(
+      "Export event registrations for every event (resumable via registrations.partial.json)."
+    )
+    .option("--request-delay-ms <ms>", "Spacing between per-event registration fetches.", (v) =>
+      parseInt(v, 10)
+    )
+    .option(
+      "--save-every-n <n>",
+      "Checkpoint cadence (events processed between writes to partial.json).",
+      (v) => parseInt(v, 10)
+    )
     .action(async (cmdOpts: { requestDelayMs?: number; saveEveryN?: number }, cmd: Command) => {
       const g = readGlobalOpts(cmd);
       const env = getCommonEnv(g);
@@ -328,9 +357,7 @@ export function buildCli(): Command {
       if (fs.existsSync(eventsJson)) {
         try {
           events = JSON.parse(fs.readFileSync(eventsJson, "utf8")) as unknown[];
-          logger.info(
-            `Found cached events at ${eventsJson} — using ${events.length} events.`
-          );
+          logger.info(`Found cached events at ${eventsJson} — using ${events.length} events.`);
         } catch {
           events = undefined;
         }
@@ -343,10 +370,8 @@ export function buildCli(): Command {
           events,
           logger,
           signal: makeAbortSignal(),
-          requestDelayMs:
-            cmdOpts.requestDelayMs ?? envInt("WA_REQUEST_DELAY_MS"),
-          saveEveryN:
-            cmdOpts.saveEveryN ?? envInt("WA_REGISTRATIONS_SAVE_EVERY"),
+          requestDelayMs: cmdOpts.requestDelayMs ?? envInt("WA_REQUEST_DELAY_MS"),
+          saveEveryN: cmdOpts.saveEveryN ?? envInt("WA_REGISTRATIONS_SAVE_EVERY"),
         })
       );
     });
@@ -387,8 +412,7 @@ export function buildCli(): Command {
           outDir: env.outDir,
           logger,
           signal: makeAbortSignal(),
-          startDate:
-            cmdOpts.startDate ?? process.env.INVOICES_START_DATE,
+          startDate: cmdOpts.startDate ?? process.env.INVOICES_START_DATE,
           endDate: cmdOpts.endDate ?? process.env.INVOICES_END_DATE,
         })
       );
@@ -411,8 +435,7 @@ export function buildCli(): Command {
           outDir: env.outDir,
           logger,
           signal: makeAbortSignal(),
-          startDate:
-            cmdOpts.startDate ?? process.env.PAYMENTS_START_DATE,
+          startDate: cmdOpts.startDate ?? process.env.PAYMENTS_START_DATE,
           endDate: cmdOpts.endDate ?? process.env.PAYMENTS_END_DATE,
         })
       );
@@ -435,8 +458,7 @@ export function buildCli(): Command {
           outDir: env.outDir,
           logger,
           signal: makeAbortSignal(),
-          startDate:
-            cmdOpts.startDate ?? process.env.DONATIONS_START_DATE,
+          startDate: cmdOpts.startDate ?? process.env.DONATIONS_START_DATE,
           endDate: cmdOpts.endDate ?? process.env.DONATIONS_END_DATE,
         })
       );
@@ -459,8 +481,7 @@ export function buildCli(): Command {
           outDir: env.outDir,
           logger,
           signal: makeAbortSignal(),
-          startDate:
-            cmdOpts.startDate ?? process.env.AUDIT_START_DATE,
+          startDate: cmdOpts.startDate ?? process.env.AUDIT_START_DATE,
           endDate: cmdOpts.endDate ?? process.env.AUDIT_END_DATE,
         })
       );
@@ -469,52 +490,70 @@ export function buildCli(): Command {
   // ----- files -----
   program
     .command("files")
-    .description("Recursively download every file from Wild Apricot's WebDAV server (resumable via _manifest.json).")
-    .option("--file-dirs <dirs>", "Comma-separated top-level directories to crawl (defaults to full root).")
-    .option("--inter-file-delay-ms <ms>", "Pause between successful downloads.", (v) => parseInt(v, 10))
+    .description(
+      "Recursively download every file from Wild Apricot's WebDAV server (resumable via _manifest.json)."
+    )
+    .option(
+      "--file-dirs <dirs>",
+      "Comma-separated top-level directories to crawl (defaults to full root)."
+    )
+    .option("--inter-file-delay-ms <ms>", "Pause between successful downloads.", (v) =>
+      parseInt(v, 10)
+    )
     .option("--max-retries <n>", "Max retry attempts per file.", (v) => parseInt(v, 10))
-    .option("--retry-base-ms <ms>", "Base delay (ms) for exponential backoff between retries.", (v) => parseInt(v, 10))
-    .action(async (
-      cmdOpts: {
-        fileDirs?: string;
-        interFileDelayMs?: number;
-        maxRetries?: number;
-        retryBaseMs?: number;
-      },
-      cmd: Command
-    ) => {
-      const g = readGlobalOpts(cmd);
-      const env = getCommonEnv(g);
-      const logger = resolveCliLogger(g);
-      const webdavUrl = process.env.WILD_APRICOT_WEBDAV_URL;
-      const adminEmail = process.env.WILD_APRICOT_ADMIN_EMAIL;
-      const adminPassword = process.env.WILD_APRICOT_ADMIN_PASSWORD;
-      if (!webdavUrl || !adminEmail || !adminPassword) {
-        console.error(
-          "ERROR: WILD_APRICOT_WEBDAV_URL, WILD_APRICOT_ADMIN_EMAIL, and WILD_APRICOT_ADMIN_PASSWORD must all be set."
+    .option(
+      "--retry-base-ms <ms>",
+      "Base delay (ms) for exponential backoff between retries.",
+      (v) => parseInt(v, 10)
+    )
+    .action(
+      async (
+        cmdOpts: {
+          fileDirs?: string;
+          interFileDelayMs?: number;
+          maxRetries?: number;
+          retryBaseMs?: number;
+        },
+        cmd: Command
+      ) => {
+        const g = readGlobalOpts(cmd);
+        const env = getCommonEnv(g);
+        const logger = resolveCliLogger(g);
+        const webdavUrl = process.env.WILD_APRICOT_WEBDAV_URL;
+        const adminEmail = process.env.WILD_APRICOT_ADMIN_EMAIL;
+        const adminPassword = process.env.WILD_APRICOT_ADMIN_PASSWORD;
+        if (!webdavUrl || !adminEmail || !adminPassword) {
+          console.error(
+            "ERROR: WILD_APRICOT_WEBDAV_URL, WILD_APRICOT_ADMIN_EMAIL, and WILD_APRICOT_ADMIN_PASSWORD must all be set."
+          );
+          process.exit(1);
+        }
+        const fileDirs = cmdOpts.fileDirs
+          ? cmdOpts.fileDirs
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean)
+          : process.env.WILD_APRICOT_FILE_DIRS
+            ? process.env.WILD_APRICOT_FILE_DIRS.split(",")
+                .map((s) => s.trim())
+                .filter(Boolean)
+            : undefined;
+        await runOrExit(() =>
+          exportFiles({
+            webdavUrl,
+            adminEmail,
+            adminPassword,
+            outDir: env.outDir,
+            logger,
+            signal: makeAbortSignal(),
+            fileDirs,
+            interFileDelayMs: cmdOpts.interFileDelayMs,
+            maxRetries: cmdOpts.maxRetries,
+            retryBaseMs: cmdOpts.retryBaseMs,
+          })
         );
-        process.exit(1);
       }
-      const fileDirs = cmdOpts.fileDirs
-        ? cmdOpts.fileDirs.split(",").map((s) => s.trim()).filter(Boolean)
-        : process.env.WILD_APRICOT_FILE_DIRS
-          ? process.env.WILD_APRICOT_FILE_DIRS.split(",").map((s) => s.trim()).filter(Boolean)
-          : undefined;
-      await runOrExit(() =>
-        exportFiles({
-          webdavUrl,
-          adminEmail,
-          adminPassword,
-          outDir: env.outDir,
-          logger,
-          signal: makeAbortSignal(),
-          fileDirs,
-          interFileDelayMs: cmdOpts.interFileDelayMs,
-          maxRetries: cmdOpts.maxRetries,
-          retryBaseMs: cmdOpts.retryBaseMs,
-        })
-      );
-    });
+    );
 
   return program;
 }

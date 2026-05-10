@@ -4,19 +4,10 @@
 
 import * as path from "node:path";
 
-import {
-  API_BASE,
-  apiGet,
-  ensureDir,
-  writeJson,
-  getAuthAndAccount,
-} from "../wa-api";
+import { API_BASE, apiGet, ensureDir, writeJson, getAuthAndAccount } from "../wa-api";
 import { ExportOptionsSchema } from "../schemas";
 import { resolveLogger } from "../logger";
-import type {
-  ConfigExportOptions,
-  ConfigExportResult,
-} from "../types";
+import type { ConfigExportOptions, ConfigExportResult } from "../types";
 
 const ENDPOINTS: Array<{ name: string; path: string }> = [
   { name: "account", path: "" },
@@ -29,9 +20,7 @@ const ENDPOINTS: Array<{ name: string; path: string }> = [
   { name: "funds", path: "/funds" },
 ];
 
-export async function exportConfig(
-  opts: ConfigExportOptions
-): Promise<ConfigExportResult> {
+export async function exportConfig(opts: ConfigExportOptions): Promise<ConfigExportResult> {
   ExportOptionsSchema.parse(opts);
   const logger = resolveLogger(opts.logger);
 
@@ -60,16 +49,16 @@ export async function exportConfig(
       writeJson(data, filePath);
       const count = Array.isArray(data)
         ? data.length
-        : data && typeof data === "object" && "Items" in data && Array.isArray((data as { Items: unknown }).Items)
-        ? ((data as { Items: unknown[] }).Items.length as number)
-        : "ok";
+        : data &&
+            typeof data === "object" &&
+            "Items" in data &&
+            Array.isArray((data as { Items: unknown }).Items)
+          ? ((data as { Items: unknown[] }).Items.length as number)
+          : "ok";
       logger.info(`saved (${count})`);
       written.push({ name: endpoint.name, path: filePath });
     } catch (err) {
-      const msg =
-        err instanceof Error
-          ? err.message.split("\n")[0] || err.message
-          : String(err);
+      const msg = err instanceof Error ? err.message.split("\n")[0] || err.message : String(err);
       logger.info(`failed: ${msg}`);
       failed.push({ name: endpoint.name, error: msg });
     }

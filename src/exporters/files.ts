@@ -125,13 +125,7 @@ async function downloadWithRetry(
       )} — ${message} — waiting ${delay}ms`
     );
     await sleep(delay, settings.signal);
-    return downloadWithRetry(
-      client,
-      remotePath,
-      localPath,
-      settings,
-      attempt + 1
-    );
+    return downloadWithRetry(client, remotePath, localPath, settings, attempt + 1);
   }
 }
 
@@ -179,22 +173,14 @@ async function crawlAndDownload(
       ensureDir(path.dirname(localPath));
       settings.logger.info(`  [DOWN] ${itemRemotePath}`);
 
-      const result = await downloadWithRetry(
-        client,
-        itemRemotePath,
-        localPath,
-        settings
-      );
-      manifest[itemRemotePath] =
-        result.status === "ok" ? "ok" : `error: ${result.message}`;
+      const result = await downloadWithRetry(client, itemRemotePath, localPath, settings);
+      manifest[itemRemotePath] = result.status === "ok" ? "ok" : `error: ${result.message}`;
       saveManifest(manifest, manifestPath);
 
       if (result.status === "ok") {
         stats.downloaded++;
       } else {
-        settings.logger.error(
-          `  [FAIL] ${itemRemotePath}: ${result.message}`
-        );
+        settings.logger.error(`  [FAIL] ${itemRemotePath}: ${result.message}`);
         stats.failed++;
       }
 
@@ -203,9 +189,7 @@ async function crawlAndDownload(
   }
 }
 
-export async function exportFiles(
-  opts: FilesExportOptions
-): Promise<FilesExportResult> {
+export async function exportFiles(opts: FilesExportOptions): Promise<FilesExportResult> {
   FilesExportOptionsSchema.parse(opts);
   const logger = resolveLogger(opts.logger);
 
@@ -217,14 +201,8 @@ export async function exportFiles(
       typeof opts.interFileDelayMs === "number"
         ? opts.interFileDelayMs
         : DEFAULT_INTER_FILE_DELAY_MS,
-    maxRetries:
-      typeof opts.maxRetries === "number"
-        ? opts.maxRetries
-        : DEFAULT_MAX_RETRIES,
-    retryBaseMs:
-      typeof opts.retryBaseMs === "number"
-        ? opts.retryBaseMs
-        : DEFAULT_RETRY_BASE_MS,
+    maxRetries: typeof opts.maxRetries === "number" ? opts.maxRetries : DEFAULT_MAX_RETRIES,
+    retryBaseMs: typeof opts.retryBaseMs === "number" ? opts.retryBaseMs : DEFAULT_RETRY_BASE_MS,
     signal: opts.signal,
     logger,
   };
@@ -253,27 +231,11 @@ export async function exportFiles(
       const remotePath = `/${dir.replace(/^\/+/, "")}`;
       ensureDir(path.join(outDir, dir.replace(/^\/+/, "")));
       logger.info(`\nCrawling: ${remotePath}`);
-      await crawlAndDownload(
-        client,
-        remotePath,
-        outDir,
-        manifest,
-        manifestPath,
-        stats,
-        settings
-      );
+      await crawlAndDownload(client, remotePath, outDir, manifest, manifestPath, stats, settings);
     }
   } else {
     logger.info("\nCrawling: / (root, recursive — everything)");
-    await crawlAndDownload(
-      client,
-      "/",
-      outDir,
-      manifest,
-      manifestPath,
-      stats,
-      settings
-    );
+    await crawlAndDownload(client, "/", outDir, manifest, manifestPath, stats, settings);
   }
 
   logger.info("\n--- Done ---");
@@ -285,8 +247,9 @@ export async function exportFiles(
 
   if (stats.failed > 0) {
     logger.info("\nFailed files are logged in the manifest. Re-run to retry them.");
-    const err: Error & { code?: string; stats?: Stats; manifestPath?: string } =
-      new Error(`${stats.failed} file download(s) failed`);
+    const err: Error & { code?: string; stats?: Stats; manifestPath?: string } = new Error(
+      `${stats.failed} file download(s) failed`
+    );
     err.code = "FILE_DOWNLOAD_FAILURES";
     err.stats = stats;
     err.manifestPath = manifestPath;

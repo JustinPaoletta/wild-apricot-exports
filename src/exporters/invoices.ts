@@ -15,10 +15,7 @@ import {
 } from "../wa-api";
 import { InvoicesExportOptionsSchema } from "../schemas";
 import { resolveLogger } from "../logger";
-import type {
-  InvoicesExportOptions,
-  InvoicesExportResult,
-} from "../types";
+import type { InvoicesExportOptions, InvoicesExportResult } from "../types";
 
 function normalizeInvoice(inv: unknown): Record<string, unknown> {
   return {
@@ -37,9 +34,7 @@ function normalizeInvoice(inv: unknown): Record<string, unknown> {
   };
 }
 
-export async function exportInvoices(
-  opts: InvoicesExportOptions
-): Promise<InvoicesExportResult> {
+export async function exportInvoices(opts: InvoicesExportOptions): Promise<InvoicesExportResult> {
   InvoicesExportOptionsSchema.parse(opts);
   const logger = resolveLogger(opts.logger);
 

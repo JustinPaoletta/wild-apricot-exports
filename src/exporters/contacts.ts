@@ -16,10 +16,7 @@ import {
 } from "../wa-api";
 import { ExportOptionsSchema } from "../schemas";
 import { resolveLogger } from "../logger";
-import type {
-  ContactsExportOptions,
-  ContactsExportResult,
-} from "../types";
+import type { ContactsExportOptions, ContactsExportResult } from "../types";
 
 interface FieldValue {
   FieldName?: string;
@@ -47,9 +44,7 @@ function flattenFieldValues(contact: unknown): Record<string, unknown> {
       value = value
         .map((v) =>
           typeof v === "object" && v !== null
-            ? (v as FieldValueObject).Label ??
-              (v as FieldValueObject).Value ??
-              JSON.stringify(v)
+            ? ((v as FieldValueObject).Label ?? (v as FieldValueObject).Value ?? JSON.stringify(v))
             : v
         )
         .join("; ");
@@ -71,35 +66,21 @@ function normalizeContact(contact: unknown): Record<string, unknown> {
     email: getNested(contact, ["Email", "email"]),
     displayName: getNested(contact, ["DisplayName", "displayName"]),
     organization:
-      getNested(contact, ["Organization", "organization"]) ||
-      flat["Organization"] ||
-      "",
-    membershipEnabled: getNested(contact, [
-      "MembershipEnabled",
-      "membershipEnabled",
-    ]),
-    membershipLevelName:
-      getNested(contact, ["MembershipLevel.Name", "membershipLevel.name"]) || "",
-    membershipLevelId:
-      getNested(contact, ["MembershipLevel.Id", "membershipLevel.id"]) || "",
+      getNested(contact, ["Organization", "organization"]) || flat["Organization"] || "",
+    membershipEnabled: getNested(contact, ["MembershipEnabled", "membershipEnabled"]),
+    membershipLevelName: getNested(contact, ["MembershipLevel.Name", "membershipLevel.name"]) || "",
+    membershipLevelId: getNested(contact, ["MembershipLevel.Id", "membershipLevel.id"]) || "",
     status: getNested(contact, ["Status", "status"]),
     isAccountAdministrator: getNested(contact, [
       "IsAccountAdministrator",
       "isAccountAdministrator",
     ]),
-    isSuspendedMember: getNested(contact, [
-      "IsSuspendedMember",
-      "isSuspendedMember",
-    ]),
+    isSuspendedMember: getNested(contact, ["IsSuspendedMember", "isSuspendedMember"]),
     membershipStartDate: flat["Member since"] || "",
     renewalDueDate: flat["Renewal due"] || "",
     lastLogin: getNested(contact, ["LastLoginDate", "lastLoginDate"]),
-    createdDate:
-      flat["Creation date"] || getNested(contact, ["ProfileLastUpdated"]),
-    profileLastUpdated: getNested(contact, [
-      "ProfileLastUpdated",
-      "profileLastUpdated",
-    ]),
+    createdDate: flat["Creation date"] || getNested(contact, ["ProfileLastUpdated"]),
+    profileLastUpdated: getNested(contact, ["ProfileLastUpdated", "profileLastUpdated"]),
     phone: flat["Phone"] || flat["phone"] || "",
     mobile: flat["Mobile phone"] || "",
     address: flat["Address"] || "",
@@ -110,9 +91,7 @@ function normalizeContact(contact: unknown): Record<string, unknown> {
   };
 }
 
-export async function exportContacts(
-  opts: ContactsExportOptions
-): Promise<ContactsExportResult> {
+export async function exportContacts(opts: ContactsExportOptions): Promise<ContactsExportResult> {
   ExportOptionsSchema.parse(opts);
   const logger = resolveLogger(opts.logger);
 

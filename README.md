@@ -10,8 +10,8 @@ Export and back up your [Wild Apricot](https://www.wildapricot.com/) data direct
 
 ## What gets exported
 
-| Subcommand              | Output                                                | Source            |
-| ----------------------- | ----------------------------------------------------- | ----------------- |
+| Subcommand                | Output                                                  | Source            |
+| ------------------------- | ------------------------------------------------------- | ----------------- |
 | `wa-export config`        | Account / membership levels / contact fields / settings | REST API          |
 | `wa-export events`        | All events (with full detail payload)                   | REST API          |
 | `wa-export registrations` | Event registrations                                     | REST API          |
@@ -51,14 +51,14 @@ npx wa-export --help
 
 The CLI reads credentials from environment variables (or a `.env` file in the working directory):
 
-| Variable                       | Required | Description |
-| ------------------------------ | -------- | ----------- |
-| `WILD_APRICOT_API_KEY`         | yes*     | API key from Settings → Authorized applications (`--api-key` overrides) |
-| `WILD_APRICOT_ACCOUNT_ID`      | no       | Auto-discovered if omitted (`--account-id` overrides) |
-| `WILD_APRICOT_WEBDAV_URL`      | only for `files` | e.g. `https://yourorg.wildapricot.org` |
-| `WILD_APRICOT_ADMIN_EMAIL`     | only for `files` | Admin login email |
-| `WILD_APRICOT_ADMIN_PASSWORD`  | only for `files` | Admin login password |
-| `WILD_APRICOT_FILE_DIRS`       | no       | Comma-separated WebDAV directories to crawl (default: full root) |
+| Variable                      | Required         | Description                                                             |
+| ----------------------------- | ---------------- | ----------------------------------------------------------------------- |
+| `WILD_APRICOT_API_KEY`        | yes\*            | API key from Settings → Authorized applications (`--api-key` overrides) |
+| `WILD_APRICOT_ACCOUNT_ID`     | no               | Auto-discovered if omitted (`--account-id` overrides)                   |
+| `WILD_APRICOT_WEBDAV_URL`     | only for `files` | e.g. `https://yourorg.wildapricot.org`                                  |
+| `WILD_APRICOT_ADMIN_EMAIL`    | only for `files` | Admin login email                                                       |
+| `WILD_APRICOT_ADMIN_PASSWORD` | only for `files` | Admin login password                                                    |
+| `WILD_APRICOT_FILE_DIRS`      | no               | Comma-separated WebDAV directories to crawl (default: full root)        |
 
 Quick start with a `.env` file:
 
@@ -95,19 +95,19 @@ wa-export all --include events,registrations
 
 Common options:
 
-| Option                  | Applies to                    | Description |
-| ----------------------- | ----------------------------- | ----------- |
-| `--api-key <key>`       | every command                 | Overrides `WILD_APRICOT_API_KEY` |
-| `--account-id <id>`     | every command                 | Overrides `WILD_APRICOT_ACCOUNT_ID` |
-| `-o, --out-dir <dir>`   | every command                 | Root output directory (default: `./exports`) |
-| `-q, --quiet`           | every command                 | Suppress progress (errors still print) |
-| `--verbose`             | every command                 | Reserved for extra diagnostics |
-| `--no-color`            | every command                 | Reserved (plain output today) |
-| `--start-date YYYY-MM-DD` / `--end-date YYYY-MM-DD` | invoices / payments / donations / audit-log / all | Restrict to a date range |
-| `--include`, `--exclude` | `all`                        | Comma-separated step lists |
-| `--file-dirs`           | `files`, `all`                | Comma-separated top-level WebDAV dirs to crawl |
-| `--request-delay-ms`    | `events`, `registrations`, `retry-events` | Override the per-request pacing |
-| `--save-every-n`        | `events`, `registrations`     | Checkpoint cadence for resumable runs |
+| Option                                              | Applies to                                        | Description                                    |
+| --------------------------------------------------- | ------------------------------------------------- | ---------------------------------------------- |
+| `--api-key <key>`                                   | every command                                     | Overrides `WILD_APRICOT_API_KEY`               |
+| `--account-id <id>`                                 | every command                                     | Overrides `WILD_APRICOT_ACCOUNT_ID`            |
+| `-o, --out-dir <dir>`                               | every command                                     | Root output directory (default: `./exports`)   |
+| `-q, --quiet`                                       | every command                                     | Suppress progress (errors still print)         |
+| `--verbose`                                         | every command                                     | Reserved for extra diagnostics                 |
+| `--no-color`                                        | every command                                     | Reserved (plain output today)                  |
+| `--start-date YYYY-MM-DD` / `--end-date YYYY-MM-DD` | invoices / payments / donations / audit-log / all | Restrict to a date range                       |
+| `--include`, `--exclude`                            | `all`                                             | Comma-separated step lists                     |
+| `--file-dirs`                                       | `files`, `all`                                    | Comma-separated top-level WebDAV dirs to crawl |
+| `--request-delay-ms`                                | `events`, `registrations`, `retry-events`         | Override the per-request pacing                |
+| `--save-every-n`                                    | `events`, `registrations`                         | Checkpoint cadence for resumable runs          |
 
 Throttling and date filters from `.env` still work when you omit CLI flags (e.g. `WA_EVENT_REQUEST_DELAY_MS`, `INVOICES_START_DATE` / `INVOICES_END_DATE`, `AUDIT_START_DATE`, etc.) — same knobs as the legacy `scripts/export-*.js` workflow.
 
@@ -134,17 +134,12 @@ exports/
 ## Library usage
 
 ```ts
-import {
-  exportContacts,
-  exportEvents,
-  exportAll,
-  consoleLogger,
-} from "wild-apricot-exports";
+import { exportContacts, exportEvents, exportAll, consoleLogger } from "wild-apricot-exports";
 
 const result = await exportContacts({
   apiKey: process.env.WILD_APRICOT_API_KEY!,
   outDir: "./exports",
-  logger: consoleLogger,         // omit for silent
+  logger: consoleLogger, // omit for silent
 });
 
 console.log(`Exported ${result.count} contacts to ${result.csvPath}`);
@@ -155,11 +150,11 @@ Every exporter accepts the same shape of options:
 ```ts
 interface ExportOptions {
   apiKey: string;
-  accountId?: string | number;        // auto-discovered if omitted
-  outDir?: string;                    // default: "./exports"
-  logger?: Logger;                    // default: silentLogger
+  accountId?: string | number; // auto-discovered if omitted
+  outDir?: string; // default: "./exports"
+  logger?: Logger; // default: silentLogger
   onProgress?(event: ProgressEvent): void;
-  signal?: AbortSignal;               // for cancellation
+  signal?: AbortSignal; // for cancellation
 }
 ```
 
@@ -194,6 +189,8 @@ From a git checkout you run the same CLI via `node bin/wa-export.js` (after `npm
 git clone https://github.com/JustinPaoletta/wild-apricot-exports.git
 cd wild-apricot-exports
 npm install
+npm run lint
+npm run format:check
 npm run build
 npm test
 node bin/wa-export.js --help
@@ -202,6 +199,10 @@ node bin/wa-export.js --help
 `npm run build:watch` rebuilds on save during development.
 
 The older CommonJS implementation under `lib/` and `scripts/` (PR 1) is kept in-repo for now as a reference while the TypeScript port stabilizes; **`main` / published releases use `src/` → `dist/` only.**
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). [Code of conduct](CODE_OF_CONDUCT.md).
 
 ## License
 

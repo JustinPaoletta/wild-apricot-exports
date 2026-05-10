@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- GitHub Actions **CI** (Node 20 & 22): lint, Prettier check, typecheck, build, test.
+- GitHub Actions **Publish** workflow on tags `v*` using npm **Trusted Publishing** (OIDC; no `NPM_TOKEN`).
+- **ESLint** (flat config) + **Prettier** + **EditorConfig**.
+- **CONTRIBUTING.md** and **CODE_OF_CONDUCT.md** (Contributor Covenant link).
+
 ## [0.1.0] - 2026-05-09
 
 ### Added

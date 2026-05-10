@@ -111,8 +111,10 @@ export type DonationsExportOptions = DateRangeExportOptions;
 export type AuditLogExportOptions = DateRangeExportOptions;
 
 /** Options accepted by `exportFiles`. */
-export interface FilesExportOptions
-  extends Pick<ExportOptions, "outDir" | "logger" | "onProgress" | "signal"> {
+export interface FilesExportOptions extends Pick<
+  ExportOptions,
+  "outDir" | "logger" | "onProgress" | "signal"
+> {
   /** WebDAV server URL. Required. */
   webdavUrl: string;
   /** Wild Apricot admin email used as the WebDAV username. Required. */

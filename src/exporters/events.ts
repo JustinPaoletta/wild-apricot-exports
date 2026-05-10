@@ -5,22 +5,10 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 
-import {
-  API_BASE,
-  apiGet,
-  ensureDir,
-  getNested,
-  getAuthAndAccount,
-  sleep,
-} from "../wa-api";
+import { API_BASE, apiGet, ensureDir, getNested, getAuthAndAccount, sleep } from "../wa-api";
 import { EventsExportOptionsSchema, EventsResponseSchema } from "../schemas";
 import { resolveLogger } from "../logger";
-import type {
-  EventsExportOptions,
-  EventsExportResult,
-  TokenManager,
-  Logger,
-} from "../types";
+import type { EventsExportOptions, EventsExportResult, TokenManager, Logger } from "../types";
 
 const DEFAULT_REQUEST_DELAY_MS = 2200;
 const DEFAULT_SAVE_EVERY_N = 100;
@@ -38,32 +26,11 @@ function normalizeEvent(event: unknown): Record<string, unknown> {
   return {
     id: getNested(event, ["Id", "id", "EventId", "eventId"]),
     title: getNested(event, ["Name", "Title", "name", "title"]),
-    startDate: getNested(event, [
-      "StartDate",
-      "StartDateTime",
-      "startDate",
-      "startDateTime",
-    ]),
-    endDate: getNested(event, [
-      "EndDate",
-      "EndDateTime",
-      "endDate",
-      "endDateTime",
-    ]),
-    location: getNested(event, [
-      "Location",
-      "LocationName",
-      "location",
-      "locationName",
-    ]),
-    registrationEnabled: getNested(event, [
-      "RegistrationEnabled",
-      "registrationEnabled",
-    ]),
-    registrationLimit: getNested(event, [
-      "RegistrationLimit",
-      "registrationLimit",
-    ]),
+    startDate: getNested(event, ["StartDate", "StartDateTime", "startDate", "startDateTime"]),
+    endDate: getNested(event, ["EndDate", "EndDateTime", "endDate", "endDateTime"]),
+    location: getNested(event, ["Location", "LocationName", "location", "locationName"]),
+    registrationEnabled: getNested(event, ["RegistrationEnabled", "registrationEnabled"]),
+    registrationLimit: getNested(event, ["RegistrationLimit", "registrationLimit"]),
     registeredCount: getNested(event, [
       "RegisteredCount",
       "RegistrantsCount",
@@ -205,9 +172,7 @@ function writeEventsCsv(events: unknown[], filePath: string): void {
 
   const rows = [
     columns.join(","),
-    ...normalized.map((event) =>
-      columns.map((col) => csvEscape(event[col])).join(",")
-    ),
+    ...normalized.map((event) => columns.map((col) => csvEscape(event[col])).join(",")),
   ];
 
   fs.writeFileSync(filePath, rows.join("\n"), "utf8");
@@ -269,9 +234,7 @@ function savePartial(state: PartialState, partialPath: string): void {
   fs.writeFileSync(partialPath, JSON.stringify(state, null, 2), "utf8");
 }
 
-export async function exportEvents(
-  opts: EventsExportOptions
-): Promise<EventsExportResult> {
+export async function exportEvents(opts: EventsExportOptions): Promise<EventsExportResult> {
   EventsExportOptionsSchema.parse(opts);
   const logger = resolveLogger(opts.logger);
 
@@ -279,11 +242,8 @@ export async function exportEvents(
   const partialPath = path.join(outDir, "_partial.json");
   const failuresPath = path.join(outDir, "_detail_failures.json");
   const requestDelayMs =
-    typeof opts.requestDelayMs === "number"
-      ? opts.requestDelayMs
-      : DEFAULT_REQUEST_DELAY_MS;
-  const saveEveryN =
-    typeof opts.saveEveryN === "number" ? opts.saveEveryN : DEFAULT_SAVE_EVERY_N;
+    typeof opts.requestDelayMs === "number" ? opts.requestDelayMs : DEFAULT_REQUEST_DELAY_MS;
+  const saveEveryN = typeof opts.saveEveryN === "number" ? opts.saveEveryN : DEFAULT_SAVE_EVERY_N;
 
   ensureDir(outDir);
 
@@ -298,18 +258,10 @@ export async function exportEvents(
   let eventList: unknown[];
   if (partial.eventList && partial.eventList.length) {
     eventList = partial.eventList;
-    logger.info(
-      `Using cached event list from partial state: ${eventList.length} events.`
-    );
+    logger.info(`Using cached event list from partial state: ${eventList.length} events.`);
   } else {
     logger.info("Fetching event list...");
-    eventList = await getAllEvents(
-      tokenManager,
-      accountId,
-      requestDelayMs,
-      opts.signal,
-      logger
-    );
+    eventList = await getAllEvents(tokenManager, accountId, requestDelayMs, opts.signal, logger);
     partial.eventList = eventList;
     savePartial(partial, partialPath);
   }
@@ -341,13 +293,7 @@ export async function exportEvents(
 
     const displayId = realId ?? `index-${i}`;
     logger.progress?.(`[${i + 1}/${eventList.length}] Event ${displayId}... `);
-    const result = await getEventDetails(
-      tokenManager,
-      accountId,
-      event,
-      opts.signal,
-      logger
-    );
+    const result = await getEventDetails(tokenManager, accountId, event, opts.signal, logger);
 
     if (idKey) {
       detailedEventsById[idKey] = result.event;
@@ -432,9 +378,7 @@ export async function exportEvents(
 
   logger.info("");
   logger.info("Done.");
-  logger.info(
-    `Detail fetched OK : ${okTotal}/${eventList.length} (${okThisRun} this run)`
-  );
+  logger.info(`Detail fetched OK : ${okTotal}/${eventList.length} (${okThisRun} this run)`);
   logger.info(`JSON: ${jsonPath}`);
   logger.info(`CSV:  ${csvPath}`);
 
