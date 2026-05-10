@@ -1,0 +1,55 @@
+# Publish to npm when a version tag is pushed (e.g. v0.1.0).
+#
+# Uses OIDC Trusted Publishing — no NPM_TOKEN secret.
+#
+# One-time setup on https://www.npmjs.com/ → your package → Settings →
+# Publishing access → Trusted publishers → GitHub Actions:
+#   - Repository: JustinPaoletta/wild-apricot-exports
+#   - Workflow filename: publish.yml  (must match this file name exactly)
+#
+# Requires npm CLI ≥ 11.5.1 and Node ≥ 22.14 (see npm trusted-publishers docs).
+# Provenance is generated automatically when publishing from a public repo via OIDC.
+#
+# https://docs.npmjs.com/trusted-publishers
+#
+name: Publish
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          registry-url: https://registry.npmjs.org
+
+      - name: Verify npm OIDC-ready
+        run: |
+          node -v
+          npm -v
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npm run format:check
+
+      - run: npm run typecheck
+
+      - run: npm run build
+
+      - run: npm test
+
+      # OIDC authentication is automatic when trusted publisher is configured.
+      - run: npm publish --access public

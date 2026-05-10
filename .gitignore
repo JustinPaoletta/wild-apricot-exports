@@ -1,4 +1,7 @@
 .env
 exports/
+exports.pr1-prev/
 node_modules/
 .DS_Store
+dist/
+*.tsbuildinfo

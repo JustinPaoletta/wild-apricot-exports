@@ -1,76 +1,126 @@
 # wild-apricot-exports
 
+[![npm version](https://img.shields.io/npm/v/wild-apricot-exports.svg)](https://www.npmjs.com/package/wild-apricot-exports)
+[![Node.js >= 20](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](https://nodejs.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Export and back up your [Wild Apricot](https://www.wildapricot.com/) data directly, without using the admin UI.
 
-A set of small Node.js scripts that pull your data out of Wild Apricot via the public REST API (and WebDAV for files) and save it locally as JSON, CSV, and the original uploaded files.
+`wild-apricot-exports` pulls your data out of Wild Apricot via the public REST API (and WebDAV for files) and saves it locally as JSON, CSV, and the original uploaded files. You can use it as a CLI (`wa-export`) or as a Node library.
 
 ## What gets exported
 
-| Script                            | Output                                                | Source            |
-| --------------------------------- | ----------------------------------------------------- | ----------------- |
-| `scripts/export-config.js`        | Account / membership levels / event tags / settings   | REST API          |
-| `scripts/export-events.js`        | All events                                            | REST API          |
-| `scripts/export-registrations.js` | Event registrations                                   | REST API          |
-| `scripts/export-contacts.js`      | Contacts / members                                    | REST API          |
-| `scripts/export-invoices.js`      | Invoices                                              | REST API          |
-| `scripts/export-payments.js`      | Payments                                              | REST API          |
-| `scripts/export-donations.js`     | Donations                                             | REST API          |
-| `scripts/export-audit-log.js`     | Audit log entries                                     | REST API          |
-| `scripts/export-files.js`         | All uploaded files (Documents, Pictures, Logos, etc.) | WebDAV            |
-| `scripts/export-all.js`           | Runs every script above in sequence                   | REST API + WebDAV |
+| Subcommand                | Output                                                  | Source            |
+| ------------------------- | ------------------------------------------------------- | ----------------- |
+| `wa-export config`        | Account / membership levels / contact fields / settings | REST API          |
+| `wa-export events`        | All events (with full detail payload)                   | REST API          |
+| `wa-export registrations` | Event registrations                                     | REST API          |
+| `wa-export contacts`      | Contacts / members                                      | REST API          |
+| `wa-export invoices`      | Invoices                                                | REST API          |
+| `wa-export payments`      | Payments                                                | REST API          |
+| `wa-export donations`     | Donations                                               | REST API          |
+| `wa-export audit-log`     | Audit log entries                                       | REST API          |
+| `wa-export files`         | All uploaded files (Documents, Pictures, Logos, etc.)   | WebDAV            |
+| `wa-export all`           | Runs every step above in sequence                       | REST API + WebDAV |
+| `wa-export retry-events`  | Re-fetches events that failed during `events`           | REST API          |
 
 REST exports are written as both `.json` (full payload) and `.csv` (flattened, spreadsheet-friendly). File exports preserve the original folder structure under `exports/files/`.
 
 ## Requirements
 
-- Node.js 18+
+- Node.js 20+
 - A Wild Apricot account with admin access
 - A Wild Apricot **API key** (Settings → Authorized applications → Authorize application)
 - For file export only: your Wild Apricot **admin login** (email + password) — the WebDAV server does not accept API keys
 
-## Setup
+## Install
 
 ```bash
-git clone https://github.com/JustinPaoletta/wild-apricot-exports.git
-cd wild-apricot-exports
-npm install
-cp .env.example .env
+npm install -g wild-apricot-exports
 ```
 
-Then edit `.env` and fill in your credentials. At minimum you need `WILD_APRICOT_API_KEY`. To export files you also need the WebDAV URL and admin login. See `.env.example` for the full list of options, including optional date-range filters for invoices, payments, donations, and the audit log.
+…or, if you'd rather not install globally, run it once with `npx` (the package exposes both `wa-export` and `wild-apricot-exports` as the same binary):
 
-## Usage
+```bash
+npx wild-apricot-exports --help
+# or
+npx wa-export --help
+```
+
+## Setup
+
+The CLI reads credentials from environment variables (or a `.env` file in the working directory):
+
+| Variable                      | Required         | Description                                                             |
+| ----------------------------- | ---------------- | ----------------------------------------------------------------------- |
+| `WILD_APRICOT_API_KEY`        | yes\*            | API key from Settings → Authorized applications (`--api-key` overrides) |
+| `WILD_APRICOT_ACCOUNT_ID`     | no               | Auto-discovered if omitted (`--account-id` overrides)                   |
+| `WILD_APRICOT_WEBDAV_URL`     | only for `files` | e.g. `https://yourorg.wildapricot.org`                                  |
+| `WILD_APRICOT_ADMIN_EMAIL`    | only for `files` | Admin login email                                                       |
+| `WILD_APRICOT_ADMIN_PASSWORD` | only for `files` | Admin login password                                                    |
+| `WILD_APRICOT_FILE_DIRS`      | no               | Comma-separated WebDAV directories to crawl (default: full root)        |
+
+Quick start with a `.env` file:
+
+```bash
+echo "WILD_APRICOT_API_KEY=your-key-here" > .env
+wa-export contacts
+```
+
+## CLI usage
 
 Run any individual exporter:
 
 ```bash
-npm run export-events
-npm run export-contacts
-npm run export-invoices
-npm run export-payments
-npm run export-donations
-npm run export-registrations
-npm run export-audit-log
-npm run export-config
-npm run export-files
+wa-export events
+wa-export contacts
+wa-export invoices --start-date 2025-01-01 --end-date 2025-12-31
+wa-export payments
+wa-export donations
+wa-export registrations
+wa-export audit-log
+wa-export config
+wa-export files
 ```
 
 Or run everything at once:
 
 ```bash
-npm run export-all
+wa-export all
+wa-export all --exclude files          # skip the slow WebDAV crawl
+wa-export all --include events,registrations
 ```
 
-`export-all` runs each step sequentially and prints a summary at the end. A failure in one step does not stop the others.
+`wa-export all` runs each step sequentially and prints a summary at the end. A failure in one step does not stop the others.
+
+Common options:
+
+| Option                                              | Applies to                                        | Description                                    |
+| --------------------------------------------------- | ------------------------------------------------- | ---------------------------------------------- |
+| `--api-key <key>`                                   | every command                                     | Overrides `WILD_APRICOT_API_KEY`               |
+| `--account-id <id>`                                 | every command                                     | Overrides `WILD_APRICOT_ACCOUNT_ID`            |
+| `-o, --out-dir <dir>`                               | every command                                     | Root output directory (default: `./exports`)   |
+| `-q, --quiet`                                       | every command                                     | Suppress progress (errors still print)         |
+| `--verbose`                                         | every command                                     | Reserved for extra diagnostics                 |
+| `--no-color`                                        | every command                                     | Reserved (plain output today)                  |
+| `--start-date YYYY-MM-DD` / `--end-date YYYY-MM-DD` | invoices / payments / donations / audit-log / all | Restrict to a date range                       |
+| `--include`, `--exclude`                            | `all`                                             | Comma-separated step lists                     |
+| `--file-dirs`                                       | `files`, `all`                                    | Comma-separated top-level WebDAV dirs to crawl |
+| `--request-delay-ms`                                | `events`, `registrations`, `retry-events`         | Override the per-request pacing                |
+| `--save-every-n`                                    | `events`, `registrations`                         | Checkpoint cadence for resumable runs          |
+
+Throttling and date filters from `.env` still work when you omit CLI flags (e.g. `WA_EVENT_REQUEST_DELAY_MS`, `INVOICES_START_DATE` / `INVOICES_END_DATE`, `AUDIT_START_DATE`, etc.) — same knobs as the legacy `scripts/export-*.js` workflow.
+
+Run `wa-export <subcommand> --help` to see every option for a given command.
 
 ## Output
 
-Everything is written under `exports/` in the project directory:
+Everything is written under `./exports/` (or whatever you pass to `--out-dir`):
 
 ```
 exports/
-  config/         account.json, membership-levels.csv, ...
-  events/         events.json, events.csv
+  config/         account.json, membership-levels.json, contact-fields.json, ...
+  events/         wild-apricot-events.json, wild-apricot-events.csv
   registrations/  registrations.json, registrations.csv
   contacts/       contacts.json, contacts.csv
   invoices/       invoices.json, invoices.csv
@@ -81,15 +131,78 @@ exports/
                   _manifest.json
 ```
 
-`exports/` is gitignored — your data stays on your machine.
+## Library usage
+
+```ts
+import { exportContacts, exportEvents, exportAll, consoleLogger } from "wild-apricot-exports";
+
+const result = await exportContacts({
+  apiKey: process.env.WILD_APRICOT_API_KEY!,
+  outDir: "./exports",
+  logger: consoleLogger, // omit for silent
+});
+
+console.log(`Exported ${result.count} contacts to ${result.csvPath}`);
+```
+
+Every exporter accepts the same shape of options:
+
+```ts
+interface ExportOptions {
+  apiKey: string;
+  accountId?: string | number; // auto-discovered if omitted
+  outDir?: string; // default: "./exports"
+  logger?: Logger; // default: silentLogger
+  onProgress?(event: ProgressEvent): void;
+  signal?: AbortSignal; // for cancellation
+}
+```
+
+Each exporter returns a typed result describing what it wrote. See `dist/index.d.ts` (or the generated docs) for the full type surface.
+
+Cancellation example:
+
+```ts
+const ac = new AbortController();
+setTimeout(() => ac.abort(), 30_000);
+
+await exportEvents({
+  apiKey: process.env.WILD_APRICOT_API_KEY!,
+  signal: ac.signal,
+});
+```
 
 ## Notes
 
-- **File downloads are resumable.** `export-files.js` writes a manifest after every file, so re-running it skips files already downloaded successfully and retries failed ones.
-- **WebDAV uses HTTP Digest auth.** Wild Apricot's WebDAV endpoint returns 500 on Basic auth; the script handles this automatically.
-- **By default, `export-files.js` crawls everything under `/` recursively** (including files at the root). If listing `/` 500s on your Wild Apricot account, set `WILD_APRICOT_FILE_DIRS` to a comma-separated list of folders to scope the crawl (e.g. `Documents,Pictures,Logos,Theme,Theme_Overrides,SiteUploads,SiteAlbums,EmailTemplates,favicon,Site`).
-- **Audit log retention is limited** by Wild Apricot (often 30–90 days depending on plan). Old `AUDIT_START_DATE` values will simply return nothing.
-- **Date filters** for invoices, payments, donations, and the audit log are optional. Leave them blank in `.env` to fetch everything.
+- **Resumability.** `events`, `registrations`, and `files` all maintain a partial-state file in their output directory and pick up where they left off if interrupted.
+- **Rate limiting.** The library handles 429s automatically with exponential backoff (honoring `Retry-After` when present), and refreshes expired access tokens mid-run on 401.
+- **WebDAV uses HTTP Digest auth.** Wild Apricot's WebDAV endpoint returns 500 on Basic auth; the file exporter handles this automatically.
+- **By default, `wa-export files` crawls everything under `/` recursively** (including files at the root). If listing `/` 500s on your account, pass `--file-dirs` to scope the crawl (e.g. `--file-dirs Documents,Pictures,Logos,Theme,SiteUploads`).
+- **Audit log retention** is limited by Wild Apricot (often 30–90 days depending on plan). Older entries simply return nothing.
+- **Date filters** for invoices, payments, donations, and the audit log are optional. Omit them to fetch everything.
+
+## Development
+
+From a git checkout you run the same CLI via `node bin/wa-export.js` (after `npm run build`). Legacy `npm run export-*` script names still work — they forward to `wa-export`:
+
+```bash
+git clone https://github.com/JustinPaoletta/wild-apricot-exports.git
+cd wild-apricot-exports
+npm install
+npm run lint
+npm run format:check
+npm run build
+npm test
+node bin/wa-export.js --help
+```
+
+`npm run build:watch` rebuilds on save during development.
+
+The older CommonJS implementation under `lib/` and `scripts/` (PR 1) is kept in-repo for now as a reference while the TypeScript port stabilizes; **`main` / published releases use `src/` → `dist/` only.**
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). [Code of conduct](CODE_OF_CONDUCT.md).
 
 ## License
 
