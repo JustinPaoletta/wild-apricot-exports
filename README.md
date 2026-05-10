@@ -35,17 +35,27 @@ REST exports are written as both `.json` (full payload) and `.csv` (flattened, s
 
 ## Install
 
+**Global CLI** (`wa-export` on your `PATH`):
+
 ```bash
 npm install -g wild-apricot-exports
 ```
 
-…or, if you'd rather not install globally, run it once with `npx` (the package exposes both `wa-export` and `wild-apricot-exports` as the same binary):
+**One-off CLI** without a global install (`npx` can fetch the package when needed). Both binary names point at the same entrypoint:
 
 ```bash
 npx wild-apricot-exports --help
 # or
 npx wa-export --help
 ```
+
+**Inside another Node project** (use the library from code _or_ pin the CLI version alongside your app):
+
+```bash
+npm install wild-apricot-exports
+```
+
+Import from `"wild-apricot-exports"` in your code (see [Library usage](#library-usage)), or run `npx wa-export …` / `npx wild-apricot-exports …` from that project’s root so `node_modules/.bin` is resolved.
 
 ## Setup
 
@@ -67,6 +77,8 @@ echo "WILD_APRICOT_API_KEY=your-key-here" > .env
 wa-export contacts
 ```
 
+If you used a **local** install (`npm install wild-apricot-exports` without `-g`), run `npx wa-export contacts` instead of `wa-export contacts`.
+
 ## CLI usage
 
 Run any individual exporter:
@@ -74,7 +86,7 @@ Run any individual exporter:
 ```bash
 wa-export events
 wa-export contacts
-wa-export invoices --start-date 2025-01-01 --end-date 2025-12-31
+wa-export invoices --start-date 2026-01-01 --end-date 2026-12-31
 wa-export payments
 wa-export donations
 wa-export registrations
@@ -111,7 +123,7 @@ Common options:
 
 Throttling and date filters from `.env` still work when you omit CLI flags (e.g. `WA_EVENT_REQUEST_DELAY_MS`, `INVOICES_START_DATE` / `INVOICES_END_DATE`, `AUDIT_START_DATE`, etc.) — same knobs as the legacy `scripts/export-*.js` workflow.
 
-Run `wa-export <subcommand> --help` to see every option for a given command.
+Run `wa-export <subcommand> --help` (or `npx wa-export <subcommand> --help` when the CLI is only installed locally) to see every option for a given command.
 
 ## Output
 
@@ -133,6 +145,10 @@ exports/
 
 ## Library usage
 
+The published package is **CommonJS** (`require`). TypeScript and many Node ESM setups can still use `import` via standard interop; plain CommonJS works out of the box.
+
+**ESM / TypeScript-style `import`:**
+
 ```ts
 import { exportContacts, exportEvents, exportAll, consoleLogger } from "wild-apricot-exports";
 
@@ -143,6 +159,21 @@ const result = await exportContacts({
 });
 
 console.log(`Exported ${result.count} contacts to ${result.csvPath}`);
+```
+
+**CommonJS `require`:**
+
+```js
+const { exportContacts, consoleLogger } = require("wild-apricot-exports");
+
+(async () => {
+  const result = await exportContacts({
+    apiKey: process.env.WILD_APRICOT_API_KEY,
+    outDir: "./exports",
+    logger: consoleLogger,
+  });
+  console.log(`Exported ${result.count} contacts to ${result.csvPath}`);
+})();
 ```
 
 Every exporter accepts the same shape of options:
@@ -158,7 +189,7 @@ interface ExportOptions {
 }
 ```
 
-Each exporter returns a typed result describing what it wrote. See `dist/index.d.ts` (or the generated docs) for the full type surface.
+Each exporter returns a typed result describing what it wrote. Full signatures and per-exporter results are in **`dist/index.d.ts`** in the installed package (`node_modules/wild-apricot-exports/dist/index.d.ts` after `npm install`).
 
 Cancellation example:
 

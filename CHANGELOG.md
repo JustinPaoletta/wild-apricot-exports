@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-05-10
+
+### Fixed
+
+- TypeScript: use `module` / `moduleResolution` `"Node16"` / `"node16"` instead of deprecated `node10` and `ignoreDeprecations: "6.0"` (that value is invalid under TypeScript 5’s config validation).
+- Files exporter: load ESM-only `webdav` with dynamic `import()` and a type-only import using `resolution-mode: "import"` so Node16 resolution matches runtime.
+
+### Changed
+
+- README: clearer consumption paths (global install, `npx`, local dependency), CommonJS `require` example and module-format note, explicit typings location under `node_modules`, and local-CLI hints for quick start and `--help`.
+
 ### Added
 
 - GitHub Actions **CI** (Node 20 & 22): lint, Prettier check, typecheck, build, test.

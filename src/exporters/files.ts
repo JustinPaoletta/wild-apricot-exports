@@ -9,7 +9,7 @@
 
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { createClient, AuthType, type WebDAVClient } from "webdav";
+import type { WebDAVClient } from "webdav" with { "resolution-mode": "import" };
 
 import { FilesExportOptionsSchema } from "../schemas";
 import { resolveLogger } from "../logger";
@@ -210,6 +210,7 @@ export async function exportFiles(opts: FilesExportOptions): Promise<FilesExport
   ensureDir(outDir);
   const manifest = loadManifest(manifestPath);
 
+  const { createClient, AuthType } = await import("webdav");
   const client = createClient(opts.webdavUrl, {
     username: opts.adminEmail,
     password: opts.adminPassword,
