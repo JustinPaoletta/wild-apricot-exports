@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Publish workflow (`publish.yml`) now creates a **GitHub Release** with GitHub-generated release notes after each successful `npm publish` (skipped if the release already exists).
+
 ## [0.2.0] - 2026-05-11
 
 ### Added

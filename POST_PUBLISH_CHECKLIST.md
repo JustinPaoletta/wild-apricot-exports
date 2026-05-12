@@ -23,3 +23,7 @@ Exercise the registry package (`@latest` or the version you shipped), not the re
 ## npm page
 
 - [ ] [npmjs.com/package/wild-apricot-exports](https://www.npmjs.com/package/wild-apricot-exports) — version matches tag, readme/bin look right
+
+## GitHub Release
+
+The Publish workflow should open a **[Releases](https://github.com/JustinPaoletta/wild-apricot-exports/releases)** entry for `vX.Y.Z` with generated notes. If the workflow succeeded but no release appeared, create it manually: `gh release create vX.Y.Z --generate-notes --verify-tag`.

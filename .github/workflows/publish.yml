@@ -12,6 +12,9 @@
 #
 # https://docs.npmjs.com/trusted-publishers
 #
+# After a successful npm publish, creates (or skips) a GitHub Release with
+# auto-generated release notes for the pushed tag (`gh release generate-notes`).
+#
 name: Publish
 
 on:
@@ -20,7 +23,7 @@ on:
       - "v*"
 
 permissions:
-  contents: read
+  contents: write # GitHub Releases; default token cannot publish with read-only contents
   id-token: write
 
 jobs:
@@ -53,3 +56,19 @@ jobs:
 
       # OIDC authentication is automatic when trusted publisher is configured.
       - run: npm publish --access public
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release $tag already exists — skipping."
+            exit 0
+          fi
+          ver="${tag#v}"
+          gh release create "$tag" \
+            --title "wild-apricot-exports v${ver}" \
+            --generate-notes \
+            --verify-tag

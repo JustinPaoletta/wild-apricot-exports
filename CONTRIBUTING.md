@@ -50,4 +50,6 @@ Configure once on npm: package **Settings → Publishing access → Trusted publ
 
 Your `package.json` **`repository.url`** must match this GitHub repository exactly or npm OIDC publishes may fail.
 
+The Publish workflow uploads to npm **and**, on success, creates a **[GitHub Release](https://github.com/JustinPaoletta/wild-apricot-exports/releases)** for that tag (`gh release … --generate-notes`). If that step fails but npm succeeded, fix permissions or run manually: `gh release create <tag> --generate-notes --verify-tag`.
+
 After `v0.x.y` is on npm, follow [POST_PUBLISH_CHECKLIST.md](POST_PUBLISH_CHECKLIST.md). A quick check: `npm install -g wild-apricot-exports@0.x.y` and `wa-export --version`.
