@@ -50,4 +50,4 @@ Configure once on npm: package **Settings → Publishing access → Trusted publ
 
 Your `package.json` **`repository.url`** must match this GitHub repository exactly or npm OIDC publishes may fail.
 
-After `v0.x.y` is on npm, verify install: `npm install -g wild-apricot-exports@0.x.y` and `wa-export --version`.
+After `v0.x.y` is on npm, follow [POST_PUBLISH_CHECKLIST.md](POST_PUBLISH_CHECKLIST.md). A quick check: `npm install -g wild-apricot-exports@0.x.y` and `wa-export --version`.

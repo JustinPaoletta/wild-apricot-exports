@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-05-11
+
+### Added
+
+- Maintainer post-publish checklist: `POST_PUBLISH_CHECKLIST.md`.
+
+### Changed
+
+- `CONTRIBUTING.md`: releasing section points at `POST_PUBLISH_CHECKLIST.md` after publishes.
+
+### Documentation
+
+- **README:** “Library exports (quick reference)” tables for exporters, loggers, and REST helpers; clearer baseline `ExportOptions` notes (`exportFiles` without `apiKey`, `exportAll` orchestration).
+- **Published typings / editor hints:** richer JSDoc on public surface (`types.ts`, `wa-api.ts`, `logger.ts`, `index.ts`).
+
 ## [0.1.1] - 2026-05-10
 
 ### Fixed

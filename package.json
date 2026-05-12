@@ -1,6 +1,6 @@
 {
   "name": "wild-apricot-exports",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Export every contact, event, registration, invoice, payment, donation, audit log entry, and uploaded file out of a Wild Apricot account to JSON, CSV, and disk — usable as a CLI (wa-export) or as a Node library.",
   "license": "MIT",
   "author": "Justin Paoletta",

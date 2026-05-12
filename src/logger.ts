@@ -6,6 +6,10 @@
 
 import type { Logger } from "./types";
 
+/**
+ * Logger that mirrors today's CLI output: `info`/`warn`/`error` to the console,
+ * `progress` to stdout without a trailing newline.
+ */
 export const consoleLogger: Logger = {
   info(message) {
     console.log(message);
@@ -21,6 +25,10 @@ export const consoleLogger: Logger = {
   },
 };
 
+/**
+ * Default library logger: all methods are no-ops so embedders stay quiet unless
+ * they pass {@link consoleLogger} or their own {@link Logger}.
+ */
 export const silentLogger: Logger = {
   info() {
     /* no-op */

@@ -8,6 +8,7 @@ import { TokenResponseSchema, PaginatedResponseSchema } from "./schemas";
 import { resolveLogger } from "./logger";
 import type { Logger, TokenManager, AuthAndAccount } from "./types";
 
+/** Wild Apricot REST API v2.2 base (`https://api.wildapricot.org/v2.2`). Append `/accounts/:id/...`. */
 export const API_BASE = "https://api.wildapricot.org/v2.2";
 const TOKEN_URL = "https://oauth.wildapricot.org/auth/token";
 
@@ -15,6 +16,9 @@ const TOKEN_URL = "https://oauth.wildapricot.org/auth/token";
  * Cancellation-aware sleep
  * -------------------------------------------------------------------------- */
 
+/**
+ * Delay that rejects with an `AbortError` if `signal` is aborted before completion.
+ */
 export function sleep(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
     if (signal?.aborted) {
@@ -155,11 +159,17 @@ function isTokenManager(value: unknown): value is TokenManager {
  *   - Sometimes-XML responses (audit log on some accounts)
  * -------------------------------------------------------------------------- */
 
+/** Tunables for {@link apiFetch} and {@link apiGet}. */
 export interface ApiFetchOptions {
+  /** HTTP method when not using default GET semantics; usually omitted. */
   method?: string;
+  /** Attempts after transient/network-style failures (separate from 429 / 401 budgets). Default 3. */
   retries?: number;
+  /** Dedicated 429 budget with exponential backoff and `Retry-After`. Default 8. */
   rateLimitRetries?: number;
+  /** Cap on seconds waited between 429 backoff rounds. Default 300. */
   maxBackoffSeconds?: number;
+  /** Bearer refresh retries on HTTP 401 when a {@link TokenManager} is supplied. Default 2. */
   authRefreshRetries?: number;
   signal?: AbortSignal;
   logger?: Logger;
@@ -169,6 +179,13 @@ interface ApiError extends Error {
   status?: number;
 }
 
+/**
+ * Authenticated HTTP helper for arbitrary Wild Apricot REST URLs (JSON by default).
+ * Handles bearer auth from a raw string or {@link TokenManager}, exponential 429 backoff
+ * honoring `Retry-After`, reactive 401 refresh with a manager, and generic transient retries.
+ *
+ * Prefer {@link apiGet} when issuing simple GET requests.
+ */
 export async function apiFetch(
   url: string,
   tokenOrManager: string | TokenManager,
@@ -317,6 +334,7 @@ export async function apiFetch(
   throw new Error(`apiFetch failed without a captured error: ${url}`);
 }
 
+/** Same as {@link apiFetch} with `method: "GET"` (default). */
 export async function apiGet(
   url: string,
   tokenOrManager: string | TokenManager,
@@ -329,6 +347,10 @@ export async function apiGet(
  * Account discovery & helpers
  * -------------------------------------------------------------------------- */
 
+/**
+ * Returns the caller's Wild Apricot account id via `GET .../accounts` when omitted from options.
+ * Uses the first account in the listing (typical single-org API keys).
+ */
 export async function discoverAccountId(
   tokenOrManager: string | TokenManager,
   options: { signal?: AbortSignal; logger?: Logger } = {}
@@ -375,13 +397,19 @@ export function extractItems(data: unknown, hint?: string): unknown[] {
  * Pagination & async query helpers
  * -------------------------------------------------------------------------- */
 
+/** Controls page size (`$top`) search params and logging for {@link paginate}. */
 export interface PaginateOptions {
+  /** `$top` page size (default 100). */
   top?: number;
+  /** Static query-string parameters merged before `$top`/`$skip` are applied. */
   params?: Record<string, string>;
   signal?: AbortSignal;
   logger?: Logger;
 }
 
+/**
+ * Page through a collection URL using OData-style `$skip`/`$top` until a short page arrives.
+ */
 export async function paginate(
   baseUrl: string,
   tokenOrManager: string | TokenManager,
@@ -409,6 +437,13 @@ export async function paginate(
   return all;
 }
 
+/**
+ * Executes a Wild Apricot **async** query: starts `baseUrl` with `params`,
+ * optionally polls with `resultId` until `State === "Complete"` (2s cadence),
+ * otherwise returns synchronous payloads unchanged.
+ *
+ * Throws if polling exceeds ~4 minutes without completion.
+ */
 export async function asyncQuery(
   baseUrl: string,
   tokenOrManager: string | TokenManager,
@@ -515,13 +550,17 @@ export function writeJson(data: unknown, filePath: string): void {
  * process.exit. CLI shims read .env and pass values in.
  * -------------------------------------------------------------------------- */
 
+/** Inputs accepted by {@link getAuthAndAccount}. */
 export interface GetAuthAndAccountOptions {
+  /** Wild Apricot authorized-application API key. */
   apiKey: string;
+  /** When omitted, discovered via {@link discoverAccountId}. */
   accountId?: string | number;
   signal?: AbortSignal;
   logger?: Logger;
 }
 
+/** Creates a cached {@link TokenManager}, primes a bearer snapshot, resolves `accountId` when omitted. */
 export async function getAuthAndAccount(opts: GetAuthAndAccountOptions): Promise<AuthAndAccount> {
   if (!opts || !opts.apiKey) {
     throw new Error(

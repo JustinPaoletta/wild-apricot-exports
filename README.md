@@ -176,7 +176,47 @@ const { exportContacts, consoleLogger } = require("wild-apricot-exports");
 })();
 ```
 
-Every exporter accepts the same shape of options:
+### Library exports (quick reference)
+
+Field-level typings and result shapes live in **`dist/index.d.ts`** after `npm install`, or in-repo in **`src/types.ts`**. REST helper option interfaces (`ApiFetchOptions`, `PaginateOptions`, etc.) are documented next to those functions in **`src/wa-api.ts`**.
+
+#### Exporters and loggers
+
+| Export                | Description                                                                                                         | Primary options                                                                                                         |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `exportConfig`        | Account, membership levels, contact fields, picklists, and related metadata as JSON files under `<outDir>/config/`. | `ConfigExportOptions` (same fields as baseline `ExportOptions`)                                                         |
+| `exportEvents`        | All events including per-event detail payloads → JSON + CSV under `<outDir>/events/`.                               | `EventsExportOptions` — adds `requestDelayMs`, `saveEveryN`                                                             |
+| `retryEventFailures`  | Re-fetches events that failed during a previous `exportEvents` run (same output tree).                              | `RetryEventFailuresOptions`                                                                                             |
+| `exportRegistrations` | Registrations per event → JSON + CSV.                                                                               | `RegistrationsExportOptions` — optional `events`, `requestDelayMs`, `saveEveryN`                                        |
+| `exportContacts`      | Contacts / members → JSON + CSV.                                                                                    | `ContactsExportOptions`                                                                                                 |
+| `exportInvoices`      | Invoices → JSON + CSV.                                                                                              | `InvoicesExportOptions` — adds optional `startDate` / `endDate` (YYYY-MM-DD)                                            |
+| `exportPayments`      | Payments → JSON + CSV.                                                                                              | `PaymentsExportOptions` — date range optional                                                                           |
+| `exportDonations`     | Donations → JSON + CSV.                                                                                             | `DonationsExportOptions` — date range optional                                                                          |
+| `exportAuditLog`      | Audit log → JSON + CSV.                                                                                             | `AuditLogExportOptions` — date range optional                                                                           |
+| `exportFiles`         | Crawls WebDAV and downloads uploaded files under `<outDir>/files/`.                                                 | `FilesExportOptions` — **no `apiKey`**; requires `webdavUrl`, `adminEmail`, `adminPassword`                             |
+| `exportAll`           | Runs export steps in order; one step failing does not stop the rest.                                                | `ExportAllOptions` — `include` / `exclude`, optional WebDAV fields when `files` runs, plus `*Options` partials per step |
+| `consoleLogger`       | Stdout/stderr logger used by the CLI; pass as `logger` for human-readable progress.                                 | —                                                                                                                       |
+| `silentLogger`        | Default when `logger` is omitted (no console noise).                                                                | —                                                                                                                       |
+
+#### REST helpers (advanced)
+
+Same OAuth, 429 backoff, and 401 refresh behavior as the exporters when you pass a `TokenManager` from `createTokenManager`.
+
+| Export               | Description                                                                                            |
+| -------------------- | ------------------------------------------------------------------------------------------------------ |
+| `API_BASE`           | Wild Apricot REST base URL for v2.2 (`https://api.wildapricot.org/v2.2`).                              |
+| `createTokenManager` | OAuth client-credentials manager; refreshes tokens before expiry and on 401.                           |
+| `getAuthAndAccount`  | From `apiKey` (+ optional `accountId`): returns `{ token, tokenManager, accountId }` for custom calls. |
+| `discoverAccountId`  | Resolves the account id from `GET /accounts` when you only have a token/manager.                       |
+| `apiFetch`           | Authenticated `fetch` with retries, rate-limit handling, and JSON/XML parsing.                         |
+| `apiGet`             | Convenience `GET` wrapper around `apiFetch`.                                                           |
+| `paginate`           | Walks `$top` / `$skip` pages and returns a flat array of items.                                        |
+| `asyncQuery`         | Starts or polls Wild Apricot async query endpoints until complete.                                     |
+| `sleep`              | Promise-based delay that respects `AbortSignal`.                                                       |
+
+#### Baseline options (most REST exporters)
+
+`exportFiles` does **not** take `apiKey` (see table above). `exportAll` extends the baseline with orchestration and WebDAV-related fields.
 
 ```ts
 interface ExportOptions {
@@ -189,7 +229,7 @@ interface ExportOptions {
 }
 ```
 
-Each exporter returns a typed result describing what it wrote. Full signatures and per-exporter results are in **`dist/index.d.ts`** in the installed package (`node_modules/wild-apricot-exports/dist/index.d.ts` after `npm install`).
+Each exporter returns a typed result (paths, counts, and step outcomes) — see **`dist/index.d.ts`** or **`src/types.ts`**.
 
 Cancellation example:
 

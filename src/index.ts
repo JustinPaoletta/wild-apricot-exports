@@ -1,6 +1,5 @@
 // src/index.ts
-// Public surface of the wild-apricot-exports library. CLI shims and external
-// consumers should import from here rather than reaching into individual files.
+/** Public library entry — see README "Library exports" tables for a quick overview. */
 
 export { exportAll } from "./exporters/all";
 export { exportConfig } from "./exporters/config";
