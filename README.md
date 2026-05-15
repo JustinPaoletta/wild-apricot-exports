@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/wae-logo.png" alt="wild-apricot-exports — CLI and library for exporting Wild Apricot data to JSON, CSV, and disk" width="480" />
+</p>
+
 # wild-apricot-exports
 
 [![npm version](https://img.shields.io/npm/v/wild-apricot-exports.svg)](https://www.npmjs.com/package/wild-apricot-exports)
@@ -61,14 +65,14 @@ Import from `"wild-apricot-exports"` in your code (see [Library usage](#library-
 
 The CLI reads credentials from environment variables (or a `.env` file in the working directory):
 
-| Variable                      | Required         | Description                                                             |
-| ----------------------------- | ---------------- | ----------------------------------------------------------------------- |
-| `WILD_APRICOT_API_KEY`        | yes\*            | API key from Settings → Authorized applications (`--api-key` overrides) |
-| `WILD_APRICOT_ACCOUNT_ID`     | no               | Auto-discovered if omitted (`--account-id` overrides)                   |
-| `WILD_APRICOT_WEBDAV_URL`     | only for `files` | e.g. `https://yourorg.wildapricot.org`                                  |
-| `WILD_APRICOT_ADMIN_EMAIL`    | only for `files` | Admin login email                                                       |
-| `WILD_APRICOT_ADMIN_PASSWORD` | only for `files` | Admin login password                                                    |
-| `WILD_APRICOT_FILE_DIRS`      | no               | Comma-separated WebDAV directories to crawl (default: full root)        |
+| Variable                      | Required                            | Description                                                             |
+| ----------------------------- | ----------------------------------- | ----------------------------------------------------------------------- |
+| `WILD_APRICOT_API_KEY`        | REST exporters & `all`; not `files` | API key from Settings → Authorized applications (`--api-key` overrides) |
+| `WILD_APRICOT_ACCOUNT_ID`     | no                                  | Auto-discovered if omitted (`--account-id` overrides)                   |
+| `WILD_APRICOT_WEBDAV_URL`     | only for `files`                    | e.g. `https://yourorg.wildapricot.org`                                  |
+| `WILD_APRICOT_ADMIN_EMAIL`    | only for `files`                    | Admin login email                                                       |
+| `WILD_APRICOT_ADMIN_PASSWORD` | only for `files`                    | Admin login password                                                    |
+| `WILD_APRICOT_FILE_DIRS`      | no                                  | Comma-separated WebDAV directories to crawl (default: full root)        |
 
 Quick start with a `.env` file:
 
@@ -109,8 +113,8 @@ Common options:
 
 | Option                                              | Applies to                                        | Description                                    |
 | --------------------------------------------------- | ------------------------------------------------- | ---------------------------------------------- |
-| `--api-key <key>`                                   | every command                                     | Overrides `WILD_APRICOT_API_KEY`               |
-| `--account-id <id>`                                 | every command                                     | Overrides `WILD_APRICOT_ACCOUNT_ID`            |
+| `--api-key <key>`                                   | REST exporters & `all`                            | Overrides `WILD_APRICOT_API_KEY`               |
+| `--account-id <id>`                                 | REST exporters & `all`                            | Overrides `WILD_APRICOT_ACCOUNT_ID`            |
 | `-o, --out-dir <dir>`                               | every command                                     | Root output directory (default: `./exports`)   |
 | `-q, --quiet`                                       | every command                                     | Suppress progress (errors still print)         |
 | `--verbose`                                         | every command                                     | Reserved for extra diagnostics                 |

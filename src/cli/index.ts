@@ -49,6 +49,13 @@ interface GlobalCliOpts {
   verbose?: boolean;
 }
 
+/** Root output directory from global `-o` / `--out-dir` (default `./exports`). */
+function resolveOutDir(globalOpts: GlobalCliOpts): string {
+  return globalOpts.outDir
+    ? path.resolve(process.cwd(), globalOpts.outDir)
+    : path.join(process.cwd(), "exports");
+}
+
 function getCommonEnv(globalOpts: GlobalCliOpts): CommonEnv {
   const apiKey = globalOpts.apiKey ?? process.env.WILD_APRICOT_API_KEY;
   if (!apiKey) {
@@ -57,9 +64,7 @@ function getCommonEnv(globalOpts: GlobalCliOpts): CommonEnv {
     );
     process.exit(1);
   }
-  const outDir = globalOpts.outDir
-    ? path.resolve(process.cwd(), globalOpts.outDir)
-    : path.join(process.cwd(), "exports");
+  const outDir = resolveOutDir(globalOpts);
   const accountId = globalOpts.accountId ?? process.env.WILD_APRICOT_ACCOUNT_ID;
   return {
     apiKey,
@@ -517,7 +522,7 @@ export function buildCli(): Command {
         cmd: Command
       ) => {
         const g = readGlobalOpts(cmd);
-        const env = getCommonEnv(g);
+        const outDir = resolveOutDir(g);
         const logger = resolveCliLogger(g);
         const webdavUrl = process.env.WILD_APRICOT_WEBDAV_URL;
         const adminEmail = process.env.WILD_APRICOT_ADMIN_EMAIL;
@@ -543,7 +548,7 @@ export function buildCli(): Command {
             webdavUrl,
             adminEmail,
             adminPassword,
-            outDir: env.outDir,
+            outDir,
             logger,
             signal: makeAbortSignal(),
             fileDirs,

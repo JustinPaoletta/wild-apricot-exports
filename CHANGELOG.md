@@ -10,6 +10,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Publish workflow (`publish.yml`) now creates a **GitHub Release** with GitHub-generated release notes after each successful `npm publish` (skipped if the release already exists).
 
+## [0.2.1] - 2026-05-15
+
+### Fixed
+
+- CLI `files` subcommand no longer requires `WILD_APRICOT_API_KEY` / `--api-key` (only WebDAV admin credentials and output directory are needed), matching documented behavior for file exports.
+
+### Documentation
+
+- **README:** centered header logo; clarified which environment variables and global CLI options apply to REST exporters / `all` vs `files`-only WebDAV runs.
+
+### Changed
+
+- **npm package:** ship `assets/wae-logo.png` and list it in `package.json` `files` so the README image resolves on the npm package page.
+
 ## [0.2.0] - 2026-05-11
 
 ### Added
