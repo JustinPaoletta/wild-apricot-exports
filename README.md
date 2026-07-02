@@ -257,4 +257,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). [Code of conduct](CODE_OF_CONDUCT.md).
 
 ## License
 
-MIT
+[MIT License](LICENSE) — Copyright (c) 2026 Justin Paoletta. See [LICENSE](LICENSE) for the full text.
