@@ -67,14 +67,14 @@ Import from `"wild-apricot-exports"` in your code (see [Library usage](#library-
 
 The CLI reads credentials from environment variables (or a `.env` file in the working directory):
 
-| Variable                      | Required                            | Description                                                             |
-| ----------------------------- | ----------------------------------- | ----------------------------------------------------------------------- |
-| `WILD_APRICOT_API_KEY`        | REST exporters & `all`; not `files` | API key from Settings → Authorized applications (`--api-key` overrides) |
-| `WILD_APRICOT_ACCOUNT_ID`     | no                                  | Auto-discovered if omitted (`--account-id` overrides)                   |
+| Variable                      | Required                            | Description                                                                                |
+| ----------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------ |
+| `WILD_APRICOT_API_KEY`        | REST exporters & `all`; not `files` | API key from Settings → Authorized applications (`--api-key` overrides)                    |
+| `WILD_APRICOT_ACCOUNT_ID`     | no                                  | Auto-discovered if omitted (`--account-id` overrides)                                      |
 | `WILD_APRICOT_WEBDAV_URL`     | only for `files`                    | WebDAV base URL (e.g. `https://yourorg.wildapricot.org` or `https://yourdomain/resources`) |
-| `WILD_APRICOT_ADMIN_EMAIL`    | only for `files`                    | Admin login email                                                       |
-| `WILD_APRICOT_ADMIN_PASSWORD` | only for `files`                    | Admin login password                                                    |
-| `WILD_APRICOT_FILE_DIRS`      | no                                  | Comma-separated WebDAV directories to crawl (default: full root)        |
+| `WILD_APRICOT_ADMIN_EMAIL`    | only for `files`                    | Admin login email                                                                          |
+| `WILD_APRICOT_ADMIN_PASSWORD` | only for `files`                    | Admin login password                                                                       |
+| `WILD_APRICOT_FILE_DIRS`      | no                                  | Comma-separated WebDAV directories to crawl (default: full root)                           |
 
 Quick start with a `.env` file:
 
@@ -191,11 +191,11 @@ const { exportContacts, consoleLogger } = require("wild-apricot-exports");
 
 ### Quick reference
 
-| Category | Exports |
-| -------- | ------- |
-| Exporters | `exportConfig`, `exportEvents`, `retryEventFailures`, `exportRegistrations`, `exportContacts`, `exportInvoices`, `exportPayments`, `exportDonations`, `exportAuditLog`, `exportFiles`, `exportAll` |
-| Loggers | `consoleLogger`, `silentLogger` |
-| REST helpers | `API_BASE`, `createTokenManager`, `getAuthAndAccount`, `discoverAccountId`, `apiFetch`, `apiGet`, `paginate`, `asyncQuery`, `sleep` |
+| Category     | Exports                                                                                                                                                                                            |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Exporters    | `exportConfig`, `exportEvents`, `retryEventFailures`, `exportRegistrations`, `exportContacts`, `exportInvoices`, `exportPayments`, `exportDonations`, `exportAuditLog`, `exportFiles`, `exportAll` |
+| Loggers      | `consoleLogger`, `silentLogger`                                                                                                                                                                    |
+| REST helpers | `API_BASE`, `createTokenManager`, `getAuthAndAccount`, `discoverAccountId`, `apiFetch`, `apiGet`, `paginate`, `asyncQuery`, `sleep`                                                                |
 
 Baseline options for REST exporters:
 

@@ -22,30 +22,30 @@ Type definitions ship in `dist/index.d.ts` (also mirrored in-repo as `src/types.
 
 ### Functions
 
-| Export | Returns | Description |
-| ------ | ------- | ----------- |
-| `exportConfig` | `Promise<ConfigExportResult>` | Account metadata shards as JSON |
-| `exportEvents` | `Promise<EventsExportResult>` | Events with full detail payloads → JSON + CSV |
-| `retryEventFailures` | `Promise<RetryEventFailuresResult>` | Re-fetch events from `_detail_failures.json` |
-| `exportRegistrations` | `Promise<RegistrationsExportResult>` | Registrations per event → JSON + CSV |
-| `exportContacts` | `Promise<ContactsExportResult>` | Contacts / members → JSON + CSV |
-| `exportInvoices` | `Promise<InvoicesExportResult>` | Invoices → JSON + CSV |
-| `exportPayments` | `Promise<PaymentsExportResult>` | Payments → JSON + CSV |
-| `exportDonations` | `Promise<DonationsExportResult>` | Donations → JSON + CSV |
-| `exportAuditLog` | `Promise<AuditLogExportResult>` | Audit log → JSON + CSV |
-| `exportFiles` | `Promise<FilesExportResult>` | WebDAV file crawl (no API key) |
-| `exportAll` | `Promise<ExportAllResult>` | Run multiple steps in sequence |
-| `consoleLogger` | `Logger` | Stdout/stderr logger (CLI default) |
-| `silentLogger` | `Logger` | No-op logger (library default) |
-| `API_BASE` | `string` | `https://api.wildapricot.org/v2.2` |
-| `createTokenManager` | `TokenManager` | OAuth client-credentials with refresh |
-| `getAuthAndAccount` | `Promise<AuthAndAccount>` | Token manager + resolved account id |
-| `discoverAccountId` | `Promise<string \| number>` | `GET /accounts` → first account id |
-| `apiFetch` | `Promise<unknown>` | Authenticated HTTP with retries |
-| `apiGet` | `Promise<unknown>` | `apiFetch` with `GET` |
-| `paginate` | `Promise<unknown[]>` | OData `$skip` / `$top` paging |
-| `asyncQuery` | `Promise<unknown>` | Wild Apricot async query poll loop |
-| `sleep` | `Promise<void>` | Delay; rejects on `AbortSignal` |
+| Export                | Returns                              | Description                                   |
+| --------------------- | ------------------------------------ | --------------------------------------------- |
+| `exportConfig`        | `Promise<ConfigExportResult>`        | Account metadata shards as JSON               |
+| `exportEvents`        | `Promise<EventsExportResult>`        | Events with full detail payloads → JSON + CSV |
+| `retryEventFailures`  | `Promise<RetryEventFailuresResult>`  | Re-fetch events from `_detail_failures.json`  |
+| `exportRegistrations` | `Promise<RegistrationsExportResult>` | Registrations per event → JSON + CSV          |
+| `exportContacts`      | `Promise<ContactsExportResult>`      | Contacts / members → JSON + CSV               |
+| `exportInvoices`      | `Promise<InvoicesExportResult>`      | Invoices → JSON + CSV                         |
+| `exportPayments`      | `Promise<PaymentsExportResult>`      | Payments → JSON + CSV                         |
+| `exportDonations`     | `Promise<DonationsExportResult>`     | Donations → JSON + CSV                        |
+| `exportAuditLog`      | `Promise<AuditLogExportResult>`      | Audit log → JSON + CSV                        |
+| `exportFiles`         | `Promise<FilesExportResult>`         | WebDAV file crawl (no API key)                |
+| `exportAll`           | `Promise<ExportAllResult>`           | Run multiple steps in sequence                |
+| `consoleLogger`       | `Logger`                             | Stdout/stderr logger (CLI default)            |
+| `silentLogger`        | `Logger`                             | No-op logger (library default)                |
+| `API_BASE`            | `string`                             | `https://api.wildapricot.org/v2.2`            |
+| `createTokenManager`  | `TokenManager`                       | OAuth client-credentials with refresh         |
+| `getAuthAndAccount`   | `Promise<AuthAndAccount>`            | Token manager + resolved account id           |
+| `discoverAccountId`   | `Promise<string \| number>`          | `GET /accounts` → first account id            |
+| `apiFetch`            | `Promise<unknown>`                   | Authenticated HTTP with retries               |
+| `apiGet`              | `Promise<unknown>`                   | `apiFetch` with `GET`                         |
+| `paginate`            | `Promise<unknown[]>`                 | OData `$skip` / `$top` paging                 |
+| `asyncQuery`          | `Promise<unknown>`                   | Wild Apricot async query poll loop            |
+| `sleep`               | `Promise<void>`                      | Delay; rejects on `AbortSignal`               |
 
 ### Types
 
@@ -59,12 +59,12 @@ Most REST exporters extend **`ExportOptions`**:
 
 ```ts
 interface ExportOptions {
-  apiKey: string;              // required
+  apiKey: string; // required
   accountId?: string | number; // auto-discovered via GET /accounts if omitted
-  outDir?: string;             // default: "./exports" (resolved from process.cwd())
-  logger?: Logger;             // default: silentLogger
+  outDir?: string; // default: "./exports" (resolved from process.cwd())
+  logger?: Logger; // default: silentLogger
   onProgress?: (event: ProgressEvent) => void;
-  signal?: AbortSignal;        // abort → throws AbortError
+  signal?: AbortSignal; // abort → throws AbortError
 }
 ```
 
@@ -109,16 +109,16 @@ Use `consoleLogger` for CLI-style output. Omit `logger` (or pass `silentLogger`)
 
 Writes one JSON file per config endpoint under `<outDir>/config/`:
 
-| File | REST path |
-| ---- | --------- |
-| `account.json` | `/accounts/:id` |
+| File                     | REST path           |
+| ------------------------ | ------------------- |
+| `account.json`           | `/accounts/:id`     |
 | `membership-levels.json` | `/membershiplevels` |
-| `contact-fields.json` | `/contactfields` |
-| `saved-searches.json` | `/savedsearches` |
-| `tenders.json` | `/tenders` |
-| `picklists.json` | `/picklists` |
-| `campaigns.json` | `/campaigns` |
-| `funds.json` | `/funds` |
+| `contact-fields.json`    | `/contactfields`    |
+| `saved-searches.json`    | `/savedsearches`    |
+| `tenders.json`           | `/tenders`          |
+| `picklists.json`         | `/picklists`        |
+| `campaigns.json`         | `/campaigns`        |
+| `funds.json`             | `/funds`            |
 
 Individual shards can fail without stopping the rest. Check `result.failed`.
 
@@ -138,19 +138,19 @@ interface ConfigExportResult {
 
 Fetches every event, then fetches each event's **detail** payload (rate-limited).
 
-| Option | Default | Description |
-| ------ | ------- | ----------- |
-| `requestDelayMs` | `2200` | Pause between detail requests (~27/min) |
-| `saveEveryN` | `100` | Checkpoint every N events |
+| Option           | Default | Description                             |
+| ---------------- | ------- | --------------------------------------- |
+| `requestDelayMs` | `2200`  | Pause between detail requests (~27/min) |
+| `saveEveryN`     | `100`   | Checkpoint every N events               |
 
 **Output** (`<outDir>/events/`):
 
-| File | Purpose |
-| ---- | ------- |
-| `wild-apricot-events.json` | Full event array |
-| `wild-apricot-events.csv` | Flattened spreadsheet |
-| `_partial.json` | Resume checkpoint (removed on success) |
-| `_detail_failures.json` | Events that fell back to list data (if any) |
+| File                       | Purpose                                     |
+| -------------------------- | ------------------------------------------- |
+| `wild-apricot-events.json` | Full event array                            |
+| `wild-apricot-events.csv`  | Flattened spreadsheet                       |
+| `_partial.json`            | Resume checkpoint (removed on success)      |
+| `_detail_failures.json`    | Events that fell back to list data (if any) |
 
 **Result:**
 
@@ -171,9 +171,9 @@ interface EventsExportResult {
 
 Reads `<outDir>/events/_detail_failures.json`, re-fetches detail for each failed event, merges successes back into the main JSON/CSV, and rewrites or removes the failures file.
 
-| Option | Default |
-| ------ | ------- |
-| `requestDelayMs` | `2200` |
+| Option           | Default |
+| ---------------- | ------- |
+| `requestDelayMs` | `2200`  |
 
 **Result:**
 
@@ -195,20 +195,20 @@ interface RetryEventFailuresResult {
 
 One registration fetch per event.
 
-| Option | Default | Description |
-| ------ | ------- | ----------- |
-| `events` | _(fetch from API)_ | Pre-fetched event list; CLI reads cached `wild-apricot-events.json` when present |
-| `requestDelayMs` | `350` | Pause between per-event fetches |
-| `saveEveryN` | `5` | Checkpoint every N events |
+| Option           | Default            | Description                                                                      |
+| ---------------- | ------------------ | -------------------------------------------------------------------------------- |
+| `events`         | _(fetch from API)_ | Pre-fetched event list; CLI reads cached `wild-apricot-events.json` when present |
+| `requestDelayMs` | `350`              | Pause between per-event fetches                                                  |
+| `saveEveryN`     | `5`                | Checkpoint every N events                                                        |
 
 **Output** (`<outDir>/registrations/`):
 
-| File | Purpose |
-| ---- | ------- |
-| `registrations.json` | All registrations |
-| `registrations.csv` | Flattened spreadsheet |
+| File                         | Purpose                                |
+| ---------------------------- | -------------------------------------- |
+| `registrations.json`         | All registrations                      |
+| `registrations.csv`          | Flattened spreadsheet                  |
 | `registrations.partial.json` | Resume checkpoint (removed on success) |
-| `_failures.json` | Per-event fetch failures (if any) |
+| `_failures.json`             | Per-event fetch failures (if any)      |
 
 ---
 
@@ -237,12 +237,12 @@ Omit both dates to fetch everything the API returns.
 
 **Output paths:**
 
-| Exporter | JSON | CSV |
-| -------- | ---- | --- |
-| `exportInvoices` | `<outDir>/invoices/invoices.json` | `invoices.csv` |
-| `exportPayments` | `<outDir>/payments/payments.json` | `payments.csv` |
+| Exporter          | JSON                                | CSV             |
+| ----------------- | ----------------------------------- | --------------- |
+| `exportInvoices`  | `<outDir>/invoices/invoices.json`   | `invoices.csv`  |
+| `exportPayments`  | `<outDir>/payments/payments.json`   | `payments.csv`  |
 | `exportDonations` | `<outDir>/donations/donations.json` | `donations.csv` |
-| `exportAuditLog` | `<outDir>/audit-log/audit-log.json` | `audit-log.csv` |
+| `exportAuditLog`  | `<outDir>/audit-log/audit-log.json` | `audit-log.csv` |
 
 **Audit log result** also includes `startDate` and `endDate` (the effective query window).
 
@@ -254,14 +254,14 @@ Crawls Wild Apricot's **WebDAV** server with HTTP **Digest** auth (admin email +
 
 ```ts
 interface FilesExportOptions {
-  webdavUrl: string;       // e.g. https://yourorg.wildapricot.org/resources
+  webdavUrl: string; // e.g. https://yourorg.wildapricot.org/resources
   adminEmail: string;
   adminPassword: string;
-  outDir?: string;         // default: "./exports"
-  fileDirs?: string[];     // default: crawl `/` recursively
+  outDir?: string; // default: "./exports"
+  fileDirs?: string[]; // default: crawl `/` recursively
   interFileDelayMs?: number; // default: 500
-  maxRetries?: number;     // default: 4
-  retryBaseMs?: number;    // default: 2000
+  maxRetries?: number; // default: 4
+  retryBaseMs?: number; // default: 2000
   logger?: Logger;
   onProgress?: OnProgress;
   signal?: AbortSignal;
@@ -294,7 +294,7 @@ A failure in one step is recorded but **does not stop** later steps.
 
 ```ts
 interface ExportAllOptions extends ExportOptions {
-  include?: AllStepName[];   // default: all steps
+  include?: AllStepName[]; // default: all steps
   exclude?: AllStepName[];
 
   // Used when the `files` step runs (skipped with a warning if missing):
@@ -359,7 +359,7 @@ Prefer passing a `TokenManager` to `paginate` / `apiFetch` over a raw bearer str
 
 ```ts
 interface AuthAndAccount {
-  token: string;           // primed bearer snapshot
+  token: string; // primed bearer snapshot
   tokenManager: TokenManager;
   accountId: string | number;
 }
@@ -371,15 +371,15 @@ Returns the first account id from `GET ${API_BASE}/accounts`.
 
 ### `apiFetch(url, tokenOrManager, options?)`
 
-| Option | Default | Description |
-| ------ | ------- | ----------- |
-| `method` | `"GET"` | HTTP method |
-| `retries` | `3` | Transient / 5xx retries |
-| `rateLimitRetries` | `8` | 429 retries with exponential backoff |
-| `maxBackoffSeconds` | `300` | Cap for 429 wait |
-| `authRefreshRetries` | `2` | 401 refresh attempts (requires `TokenManager`) |
-| `signal` | — | AbortSignal |
-| `logger` | silent | Progress / retry logging |
+| Option               | Default | Description                                    |
+| -------------------- | ------- | ---------------------------------------------- |
+| `method`             | `"GET"` | HTTP method                                    |
+| `retries`            | `3`     | Transient / 5xx retries                        |
+| `rateLimitRetries`   | `8`     | 429 retries with exponential backoff           |
+| `maxBackoffSeconds`  | `300`   | Cap for 429 wait                               |
+| `authRefreshRetries` | `2`     | 401 refresh attempts (requires `TokenManager`) |
+| `signal`             | —       | AbortSignal                                    |
+| `logger`             | silent  | Progress / retry logging                       |
 
 Handles JSON and occasional XML responses (some audit-log accounts).
 
@@ -405,22 +405,22 @@ Promise-based delay. Rejects with `AbortError` if `signal` aborts.
 
 The CLI reads these from `process.env` or a `.env` file in the working directory. See [`.env.example`](.env.example) for the full list.
 
-| Variable | Used by |
-| -------- | ------- |
-| `WILD_APRICOT_API_KEY` | REST exporters & `all` |
-| `WILD_APRICOT_ACCOUNT_ID` | REST exporters & `all` (optional) |
-| `WILD_APRICOT_WEBDAV_URL` | `files`, `all` |
-| `WILD_APRICOT_ADMIN_EMAIL` | `files`, `all` |
-| `WILD_APRICOT_ADMIN_PASSWORD` | `files`, `all` |
-| `WILD_APRICOT_FILE_DIRS` | `files`, `all` (comma-separated) |
-| `WA_EVENT_REQUEST_DELAY_MS` | `events`, `retry-events`, `all` |
-| `WA_EVENTS_SAVE_EVERY` | `events`, `all` |
-| `WA_REQUEST_DELAY_MS` | `registrations`, `all` |
-| `WA_REGISTRATIONS_SAVE_EVERY` | `registrations`, `all` |
-| `INVOICES_START_DATE` / `INVOICES_END_DATE` | `invoices`, `all` |
-| `PAYMENTS_START_DATE` / `PAYMENTS_END_DATE` | `payments`, `all` |
-| `DONATIONS_START_DATE` / `DONATIONS_END_DATE` | `donations`, `all` |
-| `AUDIT_START_DATE` / `AUDIT_END_DATE` | `audit-log`, `all` |
+| Variable                                      | Used by                           |
+| --------------------------------------------- | --------------------------------- |
+| `WILD_APRICOT_API_KEY`                        | REST exporters & `all`            |
+| `WILD_APRICOT_ACCOUNT_ID`                     | REST exporters & `all` (optional) |
+| `WILD_APRICOT_WEBDAV_URL`                     | `files`, `all`                    |
+| `WILD_APRICOT_ADMIN_EMAIL`                    | `files`, `all`                    |
+| `WILD_APRICOT_ADMIN_PASSWORD`                 | `files`, `all`                    |
+| `WILD_APRICOT_FILE_DIRS`                      | `files`, `all` (comma-separated)  |
+| `WA_EVENT_REQUEST_DELAY_MS`                   | `events`, `retry-events`, `all`   |
+| `WA_EVENTS_SAVE_EVERY`                        | `events`, `all`                   |
+| `WA_REQUEST_DELAY_MS`                         | `registrations`, `all`            |
+| `WA_REGISTRATIONS_SAVE_EVERY`                 | `registrations`, `all`            |
+| `INVOICES_START_DATE` / `INVOICES_END_DATE`   | `invoices`, `all`                 |
+| `PAYMENTS_START_DATE` / `PAYMENTS_END_DATE`   | `payments`, `all`                 |
+| `DONATIONS_START_DATE` / `DONATIONS_END_DATE` | `donations`, `all`                |
+| `AUDIT_START_DATE` / `AUDIT_END_DATE`         | `audit-log`, `all`                |
 
 Library callers pass equivalent values as function options instead of reading env vars.
 
@@ -484,8 +484,5 @@ const { tokenManager, accountId } = await getAuthAndAccount({
   apiKey: process.env.WILD_APRICOT_API_KEY!,
 });
 
-const levels = await paginate(
-  `${API_BASE}/accounts/${accountId}/membershiplevels`,
-  tokenManager
-);
+const levels = await paginate(`${API_BASE}/accounts/${accountId}/membershiplevels`, tokenManager);
 ```
