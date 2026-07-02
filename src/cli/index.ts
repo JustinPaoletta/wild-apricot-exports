@@ -33,7 +33,7 @@ interface CommonEnv {
   outDir: string;
 }
 
-/** Parse integer env vars used by the legacy `scripts/export-*.js` workflow. */
+/** Parse integer env vars used by the CLI and legacy npm export-* aliases. */
 function envInt(name: string): number | undefined {
   const raw = process.env[name];
   if (raw === undefined || raw === "") return undefined;
@@ -46,7 +46,6 @@ interface GlobalCliOpts {
   apiKey?: string;
   accountId?: string;
   quiet?: boolean;
-  verbose?: boolean;
 }
 
 /** Root output directory from global `-o` / `--out-dir` (default `./exports`). */
@@ -159,9 +158,7 @@ export function buildCli(): Command {
       "--account-id <id>",
       "Wild Apricot account ID (overrides WILD_APRICOT_ACCOUNT_ID; auto-discovered if omitted)"
     )
-    .option("-q, --quiet", "Suppress progress output (errors still print)")
-    .option("--verbose", "Enable verbose diagnostics (reserved; default output is informational)")
-    .option("--no-color", "Disable ANSI colors (no-op today; reserved for themed output)");
+    .option("-q, --quiet", "Suppress progress output (errors still print)");
 
   // ----- all -----
   program
