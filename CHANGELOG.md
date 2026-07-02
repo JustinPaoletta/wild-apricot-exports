@@ -6,10 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-07-02
+
 ### Documentation
 
 - **API.md:** full programmatic reference (exporters, options, return types, REST helpers, env vars, examples).
-- **README / `.env.example` / CONTRIBUTING:** aligned with v1.0.0 CLI (`wa-export`), resumability filenames, audit-log defaults, and WebDAV CLI flags.
+- **README / `.env.example` / CONTRIBUTING:** aligned with v1.0.0 CLI (`wa-export`), resumability filenames, audit-log defaults, and WebDAV CLI flags; MIT license section with link to `LICENSE`.
+- Removed `V1_RELEASE_NEXT_STEPS.md`; release guidance lives in CONTRIBUTING and `POST_PUBLISH_CHECKLIST.md`.
 
 ## [1.0.0] - 2026-07-02
 
