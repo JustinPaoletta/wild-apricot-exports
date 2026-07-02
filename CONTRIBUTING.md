@@ -29,6 +29,8 @@ npm run build:watch
 
 Avoid committing secrets: keep `.env` out of git (it's gitignored). Never commit Wild Apricot exports or backups that contain member PII.
 
+Programmatic API details for contributors and embedders: [API.md](API.md).
+
 ## Testing against a real Wild Apricot account
 
 Prefer a **sandbox or test account** where possible. If you only have production access, throttle exports (`WA_EVENT_REQUEST_DELAY_MS`, small date windows) and remember output contains **PII**. Do not paste API keys or export files into GitHub issues or PR descriptions.
@@ -52,4 +54,4 @@ Your `package.json` **`repository.url`** must match this GitHub repository exact
 
 The Publish workflow uploads to npm **and**, on success, creates a **[GitHub Release](https://github.com/JustinPaoletta/wild-apricot-exports/releases)** for that tag (`gh release … --generate-notes`). If that step fails but npm succeeded, fix permissions or run manually: `gh release create <tag> --generate-notes --verify-tag`.
 
-After `v0.x.y` is on npm, follow [POST_PUBLISH_CHECKLIST.md](POST_PUBLISH_CHECKLIST.md). A quick check: `npm install -g wild-apricot-exports@0.x.y` and `wa-export --version`.
+After `vX.Y.Z` is on npm, follow [POST_PUBLISH_CHECKLIST.md](POST_PUBLISH_CHECKLIST.md). A quick check: `npm install -g wild-apricot-exports@X.Y.Z` and `wa-export --version`.

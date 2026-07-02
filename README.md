@@ -12,6 +12,8 @@ Export and back up your [Wild Apricot](https://www.wildapricot.com/) data direct
 
 `wild-apricot-exports` pulls your data out of Wild Apricot via the public REST API (and WebDAV for files) and saves it locally as JSON, CSV, and the original uploaded files. You can use it as a CLI (`wa-export`) or as a Node library.
 
+**API reference:** [API.md](API.md) — full programmatic docs (options, return types, defaults, REST helpers, examples).
+
 ## What gets exported
 
 | Subcommand                | Output                                                  | Source            |
@@ -69,7 +71,7 @@ The CLI reads credentials from environment variables (or a `.env` file in the wo
 | ----------------------------- | ----------------------------------- | ----------------------------------------------------------------------- |
 | `WILD_APRICOT_API_KEY`        | REST exporters & `all`; not `files` | API key from Settings → Authorized applications (`--api-key` overrides) |
 | `WILD_APRICOT_ACCOUNT_ID`     | no                                  | Auto-discovered if omitted (`--account-id` overrides)                   |
-| `WILD_APRICOT_WEBDAV_URL`     | only for `files`                    | e.g. `https://yourorg.wildapricot.org`                                  |
+| `WILD_APRICOT_WEBDAV_URL`     | only for `files`                    | WebDAV base URL (e.g. `https://yourorg.wildapricot.org` or `https://yourdomain/resources`) |
 | `WILD_APRICOT_ADMIN_EMAIL`    | only for `files`                    | Admin login email                                                       |
 | `WILD_APRICOT_ADMIN_PASSWORD` | only for `files`                    | Admin login password                                                    |
 | `WILD_APRICOT_FILE_DIRS`      | no                                  | Comma-separated WebDAV directories to crawl (default: full root)        |
@@ -122,8 +124,13 @@ Common options:
 | `--file-dirs`                                       | `files`, `all`                                    | Comma-separated top-level WebDAV dirs to crawl |
 | `--request-delay-ms`                                | `events`, `registrations`, `retry-events`         | Override the per-request pacing                |
 | `--save-every-n`                                    | `events`, `registrations`                         | Checkpoint cadence for resumable runs          |
+| `--inter-file-delay-ms`                             | `files`, `all`                                    | Pause between successful WebDAV downloads      |
+| `--max-retries`                                     | `files`, `all`                                    | Max retry attempts per file                    |
+| `--retry-base-ms`                                   | `files`, `all`                                    | Base delay for exponential backoff on retries  |
 
-Throttling and date filters from `.env` still work when you omit CLI flags (e.g. `WA_EVENT_REQUEST_DELAY_MS`, `INVOICES_START_DATE` / `INVOICES_END_DATE`, `AUDIT_START_DATE`, etc.).
+Throttling and date filters from `.env` still work when you omit CLI flags (e.g. `WA_EVENT_REQUEST_DELAY_MS`, `WA_EVENTS_SAVE_EVERY`, `INVOICES_START_DATE` / `INVOICES_END_DATE`, `AUDIT_START_DATE`, etc.). See [`.env.example`](.env.example).
+
+`wa-export audit-log` defaults to the **last 30 days** when you omit `--start-date` / `--end-date` (Wild Apricot only retains a limited audit window anyway).
 
 Run `wa-export <subcommand> --help` (or `npx wa-export <subcommand> --help` when the CLI is only installed locally) to see every option for a given command.
 
@@ -135,19 +142,23 @@ Everything is written under `./exports/` (or whatever you pass to `--out-dir`):
 exports/
   config/         account.json, membership-levels.json, contact-fields.json, ...
   events/         wild-apricot-events.json, wild-apricot-events.csv
+                  _partial.json (resume checkpoint), _detail_failures.json (if any)
   registrations/  registrations.json, registrations.csv
+                  registrations.partial.json (resume), _failures.json (if any)
   contacts/       contacts.json, contacts.csv
   invoices/       invoices.json, invoices.csv
   payments/       payments.json, payments.csv
   donations/      donations.json, donations.csv
   audit-log/      audit-log.json, audit-log.csv
   files/          <original folder structure from WebDAV>
-                  _manifest.json
+                  _manifest.json (resume + stats)
 ```
 
 ## Library usage
 
 The published package is **CommonJS** (`require`). TypeScript and many Node ESM setups can still use `import` via standard interop; plain CommonJS works out of the box.
+
+For the complete reference — every exporter, option default, return type, REST helper, and env var — see **[API.md](API.md)**.
 
 **ESM / TypeScript-style `import`:**
 
@@ -178,47 +189,15 @@ const { exportContacts, consoleLogger } = require("wild-apricot-exports");
 })();
 ```
 
-### Library exports (quick reference)
+### Quick reference
 
-Field-level typings and result shapes live in **`dist/index.d.ts`** after `npm install`, or in-repo in **`src/types.ts`**. REST helper option interfaces (`ApiFetchOptions`, `PaginateOptions`, etc.) are documented next to those functions in **`src/wa-api.ts`**.
+| Category | Exports |
+| -------- | ------- |
+| Exporters | `exportConfig`, `exportEvents`, `retryEventFailures`, `exportRegistrations`, `exportContacts`, `exportInvoices`, `exportPayments`, `exportDonations`, `exportAuditLog`, `exportFiles`, `exportAll` |
+| Loggers | `consoleLogger`, `silentLogger` |
+| REST helpers | `API_BASE`, `createTokenManager`, `getAuthAndAccount`, `discoverAccountId`, `apiFetch`, `apiGet`, `paginate`, `asyncQuery`, `sleep` |
 
-#### Exporters and loggers
-
-| Export                | Description                                                                                                         | Primary options                                                                                                         |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `exportConfig`        | Account, membership levels, contact fields, picklists, and related metadata as JSON files under `<outDir>/config/`. | `ConfigExportOptions` (same fields as baseline `ExportOptions`)                                                         |
-| `exportEvents`        | All events including per-event detail payloads → JSON + CSV under `<outDir>/events/`.                               | `EventsExportOptions` — adds `requestDelayMs`, `saveEveryN`                                                             |
-| `retryEventFailures`  | Re-fetches events that failed during a previous `exportEvents` run (same output tree).                              | `RetryEventFailuresOptions`                                                                                             |
-| `exportRegistrations` | Registrations per event → JSON + CSV.                                                                               | `RegistrationsExportOptions` — optional `events`, `requestDelayMs`, `saveEveryN`                                        |
-| `exportContacts`      | Contacts / members → JSON + CSV.                                                                                    | `ContactsExportOptions`                                                                                                 |
-| `exportInvoices`      | Invoices → JSON + CSV.                                                                                              | `InvoicesExportOptions` — adds optional `startDate` / `endDate` (YYYY-MM-DD)                                            |
-| `exportPayments`      | Payments → JSON + CSV.                                                                                              | `PaymentsExportOptions` — date range optional                                                                           |
-| `exportDonations`     | Donations → JSON + CSV.                                                                                             | `DonationsExportOptions` — date range optional                                                                          |
-| `exportAuditLog`      | Audit log → JSON + CSV.                                                                                             | `AuditLogExportOptions` — date range optional                                                                           |
-| `exportFiles`         | Crawls WebDAV and downloads uploaded files under `<outDir>/files/`.                                                 | `FilesExportOptions` — **no `apiKey`**; requires `webdavUrl`, `adminEmail`, `adminPassword`                             |
-| `exportAll`           | Runs export steps in order; one step failing does not stop the rest.                                                | `ExportAllOptions` — `include` / `exclude`, optional WebDAV fields when `files` runs, plus `*Options` partials per step |
-| `consoleLogger`       | Stdout/stderr logger used by the CLI; pass as `logger` for human-readable progress.                                 | —                                                                                                                       |
-| `silentLogger`        | Default when `logger` is omitted (no console noise).                                                                | —                                                                                                                       |
-
-#### REST helpers (advanced)
-
-Same OAuth, 429 backoff, and 401 refresh behavior as the exporters when you pass a `TokenManager` from `createTokenManager`.
-
-| Export               | Description                                                                                            |
-| -------------------- | ------------------------------------------------------------------------------------------------------ |
-| `API_BASE`           | Wild Apricot REST base URL for v2.2 (`https://api.wildapricot.org/v2.2`).                              |
-| `createTokenManager` | OAuth client-credentials manager; refreshes tokens before expiry and on 401.                           |
-| `getAuthAndAccount`  | From `apiKey` (+ optional `accountId`): returns `{ token, tokenManager, accountId }` for custom calls. |
-| `discoverAccountId`  | Resolves the account id from `GET /accounts` when you only have a token/manager.                       |
-| `apiFetch`           | Authenticated `fetch` with retries, rate-limit handling, and JSON/XML parsing.                         |
-| `apiGet`             | Convenience `GET` wrapper around `apiFetch`.                                                           |
-| `paginate`           | Walks `$top` / `$skip` pages and returns a flat array of items.                                        |
-| `asyncQuery`         | Starts or polls Wild Apricot async query endpoints until complete.                                     |
-| `sleep`              | Promise-based delay that respects `AbortSignal`.                                                       |
-
-#### Baseline options (most REST exporters)
-
-`exportFiles` does **not** take `apiKey` (see table above). `exportAll` extends the baseline with orchestration and WebDAV-related fields.
+Baseline options for REST exporters:
 
 ```ts
 interface ExportOptions {
@@ -231,7 +210,7 @@ interface ExportOptions {
 }
 ```
 
-Each exporter returns a typed result (paths, counts, and step outcomes) — see **`dist/index.d.ts`** or **`src/types.ts`**.
+`exportFiles` uses WebDAV credentials instead of `apiKey`. Full option and result docs: **[API.md](API.md)**. TypeScript definitions: **`dist/index.d.ts`**.
 
 Cancellation example:
 
@@ -247,7 +226,7 @@ await exportEvents({
 
 ## Notes
 
-- **Resumability.** `events`, `registrations`, and `files` all maintain a partial-state file in their output directory and pick up where they left off if interrupted.
+- **Resumability.** `events` (`_partial.json`), `registrations` (`registrations.partial.json`), and `files` (`_manifest.json`) checkpoint progress and resume if interrupted. Use `retryEventFailures` after `events` when `_detail_failures.json` is present.
 - **Rate limiting.** The library handles 429s automatically with exponential backoff (honoring `Retry-After` when present), and refreshes expired access tokens mid-run on 401.
 - **WebDAV uses HTTP Digest auth.** Wild Apricot's WebDAV endpoint returns 500 on Basic auth; the file exporter handles this automatically.
 - **By default, `wa-export files` crawls everything under `/` recursively** (including files at the root). If listing `/` 500s on your account, pass `--file-dirs` to scope the crawl (e.g. `--file-dirs Documents,Pictures,Logos,Theme,SiteUploads`).

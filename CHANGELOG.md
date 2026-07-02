@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Documentation
+
+- **API.md:** full programmatic reference (exporters, options, return types, REST helpers, env vars, examples).
+- **README / `.env.example` / CONTRIBUTING:** aligned with v1.0.0 CLI (`wa-export`), resumability filenames, audit-log defaults, and WebDAV CLI flags.
+
 ## [1.0.0] - 2026-07-02
 
 ### Added

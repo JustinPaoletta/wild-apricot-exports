@@ -1,5 +1,5 @@
 // src/index.ts
-/** Public library entry — see README "Library exports" tables for a quick overview. */
+/** Public library entry — see API.md and README "Library usage" for programmatic docs. */
 
 export { exportAll } from "./exporters/all";
 export { exportConfig } from "./exporters/config";

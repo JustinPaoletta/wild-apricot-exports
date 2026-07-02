@@ -13,7 +13,7 @@ Exercise the registry package (`@latest` or the version you shipped), not the re
 ## Library (ESM smoke)
 
 - [ ] `mkdir`/cd temp project → `npm init -y` → `npm install wild-apricot-exports@latest`
-- [ ] `run.mjs` imports `exportContacts` (or another exporter) + `consoleLogger`, passes `apiKey` / `outDir`, runs once (see README snippet)
+- [ ] `run.mjs` imports `exportContacts` (or another exporter) + `consoleLogger`, passes `apiKey` / `outDir`, runs once (see README or [API.md](API.md))
 - [ ] Run completes and writes expected outputs
 
 ## Tarball sanity (optional)
