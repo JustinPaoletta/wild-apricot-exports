@@ -7,6 +7,6 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   prettier,
   {
-    ignores: ["dist/**", "node_modules/**", "lib/**", "scripts/**", "coverage/**", "bin/**"],
+    ignores: ["dist/**", "node_modules/**", "coverage/**", "bin/**"],
   }
 );

@@ -117,15 +117,13 @@ Common options:
 | `--account-id <id>`                                 | REST exporters & `all`                            | Overrides `WILD_APRICOT_ACCOUNT_ID`            |
 | `-o, --out-dir <dir>`                               | every command                                     | Root output directory (default: `./exports`)   |
 | `-q, --quiet`                                       | every command                                     | Suppress progress (errors still print)         |
-| `--verbose`                                         | every command                                     | Reserved for extra diagnostics                 |
-| `--no-color`                                        | every command                                     | Reserved (plain output today)                  |
 | `--start-date YYYY-MM-DD` / `--end-date YYYY-MM-DD` | invoices / payments / donations / audit-log / all | Restrict to a date range                       |
 | `--include`, `--exclude`                            | `all`                                             | Comma-separated step lists                     |
 | `--file-dirs`                                       | `files`, `all`                                    | Comma-separated top-level WebDAV dirs to crawl |
 | `--request-delay-ms`                                | `events`, `registrations`, `retry-events`         | Override the per-request pacing                |
 | `--save-every-n`                                    | `events`, `registrations`                         | Checkpoint cadence for resumable runs          |
 
-Throttling and date filters from `.env` still work when you omit CLI flags (e.g. `WA_EVENT_REQUEST_DELAY_MS`, `INVOICES_START_DATE` / `INVOICES_END_DATE`, `AUDIT_START_DATE`, etc.) — same knobs as the legacy `scripts/export-*.js` workflow.
+Throttling and date filters from `.env` still work when you omit CLI flags (e.g. `WA_EVENT_REQUEST_DELAY_MS`, `INVOICES_START_DATE` / `INVOICES_END_DATE`, `AUDIT_START_DATE`, etc.).
 
 Run `wa-export <subcommand> --help` (or `npx wa-export <subcommand> --help` when the CLI is only installed locally) to see every option for a given command.
 
@@ -258,7 +256,7 @@ await exportEvents({
 
 ## Development
 
-From a git checkout you run the same CLI via `node bin/wa-export.js` (after `npm run build`). Legacy `npm run export-*` script names still work — they forward to `wa-export`:
+From a git checkout you run the same CLI via `node bin/wa-export.js` (after `npm run build`). The `npm run export-*` script names are convenience aliases that forward to `wa-export`:
 
 ```bash
 git clone https://github.com/JustinPaoletta/wild-apricot-exports.git
@@ -268,12 +266,11 @@ npm run lint
 npm run format:check
 npm run build
 npm test
+npm run test:coverage
 node bin/wa-export.js --help
 ```
 
 `npm run build:watch` rebuilds on save during development.
-
-The older CommonJS implementation under `lib/` and `scripts/` (PR 1) is kept in-repo for now as a reference while the TypeScript port stabilizes; **`main` / published releases use `src/` → `dist/` only.**
 
 ## Contributing
 

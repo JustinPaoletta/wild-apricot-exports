@@ -1,6 +1,6 @@
 {
   "name": "wild-apricot-exports",
-  "version": "0.2.1",
+  "version": "1.0.0",
   "description": "Export every contact, event, registration, invoice, payment, donation, audit log entry, and uploaded file out of a Wild Apricot account to JSON, CSV, and disk — usable as a CLI (wa-export) or as a Node library.",
   "license": "MIT",
   "author": "Justin Paoletta",
@@ -62,6 +62,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "wa-export": "node bin/wa-export.js",
     "prepublishOnly": "npm run lint && npm run format:check && npm run typecheck && npm run clean && npm run build && npm test",
     "export-all": "node bin/wa-export.js all",
@@ -85,6 +86,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "@types/node": "^25.6.2",
+    "@vitest/coverage-v8": "^3.2.4",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.8.1",

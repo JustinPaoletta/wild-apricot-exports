@@ -1,7 +1,7 @@
 // src/exporters/all.ts
 // Orchestrator that runs every individual exporter in sequence and reports
 // a summary at the end. Failures in any one exporter are logged but do not
-// stop the others — matches the original `scripts/export-all.js` behavior.
+// stop the others — matches the original export-all orchestrator behavior.
 
 import * as fs from "node:fs";
 import * as path from "node:path";

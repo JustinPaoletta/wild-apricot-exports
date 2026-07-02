@@ -285,13 +285,7 @@ export async function apiFetch(
           `${method} ${response.status} ${response.statusText}\nURL: ${url}\n${body.slice(0, 500)}`
         );
         err.status = response.status;
-        // 408 is occasionally transient on WA — let it fall through to the
-        // generic retry path. Other 4xx (403/404/etc.) are genuine client
-        // errors and should fail fast.
-        const isTransient4xx = response.status === 408;
-        if (response.status >= 400 && response.status < 500 && !isTransient4xx) {
-          throw err;
-        }
+        // Retry vs fast-fail for 4xx/5xx is decided in the catch block below.
         throw err;
       }
 

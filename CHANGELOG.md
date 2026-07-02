@@ -6,9 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-07-02
+
+### Added
+
+- **Test suite:** Vitest coverage for the REST client (`wa-api`), Zod schemas, loggers, CLI routing, `exportAll` orchestration, individual exporters (config, contacts, invoices, payments, donations, audit-log, events, files), and shared test helpers for mocked `fetch` / temp directories.
+- **`npm run test:coverage`** with V8 coverage thresholds in `vitest.config.ts`.
+
 ### Changed
 
-- Publish workflow (`publish.yml`) now creates a **GitHub Release** with GitHub-generated release notes after each successful `npm publish` (skipped if the release already exists).
+- **1.0.0 stable release:** TypeScript `src/` → `dist/` is the sole supported implementation; removed legacy in-repo CommonJS reference trees under `lib/` and `scripts/`.
+- **CLI:** removed reserved no-op flags `--verbose` and `--no-color` (they can return when implemented).
+- **`apiFetch`:** simplified error handling so 4xx/5xx retry vs fast-fail is decided in one place (the catch block).
+
+### Removed
+
+- Legacy CommonJS reference implementation (`lib/`, `scripts/`).
 
 ## [0.2.1] - 2026-05-15
 
